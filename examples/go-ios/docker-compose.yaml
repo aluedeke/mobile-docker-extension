@@ -24,13 +24,6 @@ services:
     build: .
     # Share network with ios-tunnel container to access the TUN device
     network_mode: "container:ios-tunnel"
-    # Mount the usbmuxd socket volume
-    volumes:
-      - usbmuxd-socket:/var/run/usbmuxd
     environment:
-      # Tell go-ios where to find the usbmuxd socket
-      - USBMUXD_SOCKET_ADDRESS=/var/run/usbmuxd/usbmuxd
-
-volumes:
-  usbmuxd-socket:
-    external: true
+      # Connect to usbmuxd via TCP relay on macOS host
+      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015

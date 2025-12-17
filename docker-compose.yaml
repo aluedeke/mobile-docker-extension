@@ -1,27 +1,17 @@
 services:
   usbmuxd-backend:
     image: ${DESKTOP_PLUGIN_IMAGE}
-    # Using a fixed container name makes it easier for users to share the network
     container_name: ios-tunnel
-    volumes:
-      - usbmuxd-socket:/run/usbmuxd-shared
     environment:
-      # Tell go-ios to use our relayed usbmuxd socket
-      - USBMUXD_SOCKET_ADDRESS=/run/usbmuxd-shared/usbmuxd
+      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
     command: [
       "/backend",
       "-host", "host.docker.internal:27015",
-      "-usbmuxd", "/run/usbmuxd-shared/usbmuxd",
       "-socket", "/run/guest-services/backend.sock",
       "-tunnel"
     ]
     restart: unless-stopped
-    # Kernel TUN device requires NET_ADMIN capability and /dev/net/tun access
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
-
-volumes:
-  usbmuxd-socket:
-    name: usbmuxd-socket
