@@ -1,0 +1,9 @@
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+.DS_Store
+backend/backend
+backend/usbmuxd-backend
+host/usbmuxd-relay

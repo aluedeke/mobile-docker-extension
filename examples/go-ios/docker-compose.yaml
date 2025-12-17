@@ -1,0 +1,36 @@
+# Example: Using go-ios with the usbmuxd-docker-extension
+#
+# Prerequisites:
+#   1. Install the usbmuxd-docker-extension in Docker Desktop
+#   2. Start the host relay (via the extension UI or manually)
+#   3. Connect an iOS device via USB
+#
+# Usage:
+#   # Build the go-ios image
+#   docker compose build
+#
+#   # List connected devices
+#   docker compose run --rm go-ios list
+#
+#   # Get device info (basic, via usbmuxd)
+#   docker compose run --rm go-ios info
+#
+#   # For iOS 17.4+ devices with tunnel features:
+#   docker compose run --rm go-ios info display
+#   docker compose run --rm go-ios tunnel ls
+
+services:
+  go-ios:
+    build: .
+    # Share network with ios-tunnel container to access the TUN device
+    network_mode: "container:ios-tunnel"
+    # Mount the usbmuxd socket volume
+    volumes:
+      - usbmuxd-socket:/var/run/usbmuxd
+    environment:
+      # Tell go-ios where to find the usbmuxd socket
+      - USBMUXD_SOCKET_ADDRESS=/var/run/usbmuxd/usbmuxd
+
+volumes:
+  usbmuxd-socket:
+    external: true

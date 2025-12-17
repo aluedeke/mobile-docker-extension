@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USBMUX Relay</title>
+  <style>
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d30;
+      --text-primary: #cccccc;
+      --text-secondary: #858585;
+      --accent: #0078d4;
+      --success: #4caf50;
+      --error: #f44336;
+      --warning: #ff9800;
+      --border: #3c3c3c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    /* Status Card */
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-indicator {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--error);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-indicator.running { background: var(--success); }
+    .status-indicator.starting { background: var(--warning); }
+
+    .status-indicator svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    .status-info { flex: 1; }
+
+    .status-text {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .status-text.running { color: var(--success); }
+    .status-text.stopped { color: var(--error); }
+    .status-text.starting { color: var(--warning); }
+
+    .status-detail {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .status-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    button:hover { background: #106ebe; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary { background: var(--bg-tertiary); border: 1px solid var(--border); }
+    button.secondary:hover { background: var(--border); }
+    button.danger { background: var(--error); }
+    button.danger:hover { background: #d32f2f; }
+    button.success { background: var(--success); }
+    button.success:hover { background: #43a047; }
+    button.small { padding: 6px 12px; font-size: 12px; }
+
+    /* Auto-start section */
+    .autostart-info h3 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .autostart-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .autostart-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .autostart-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .autostart-badge.installed {
+      background: rgba(76, 175, 80, 0.2);
+      color: var(--success);
+    }
+
+    .autostart-badge.not-installed {
+      background: rgba(133, 133, 133, 0.2);
+      color: var(--text-secondary);
+    }
+
+    /* Log container */
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .log-header h2 {
+      margin-bottom: 0;
+    }
+
+    .log-container {
+      max-height: 200px;
+      overflow-y: auto;
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+    }
+
+    .log-line { padding: 2px 0; color: var(--text-secondary); white-space: pre-wrap; word-break: break-all; }
+    .log-empty { color: var(--text-secondary); font-style: italic; }
+
+    /* Code block */
+    .code-block {
+      background: var(--bg-tertiary);
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre;
+      margin-top: 12px;
+    }
+
+    .section-text {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    /* Service status rows */
+    .service-status {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .service-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--error);
+      flex-shrink: 0;
+    }
+
+    .service-dot.running { background: var(--success); }
+
+    .service-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .service-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .service-badge.running {
+      background: rgba(76, 175, 80, 0.2);
+      color: var(--success);
+    }
+
+    .service-badge.stopped {
+      background: rgba(244, 67, 54, 0.2);
+      color: var(--error);
+    }
+
+    .service-badge.not-installed {
+      background: rgba(133, 133, 133, 0.2);
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>USBMUX Relay</h1>
+
+    <!-- Main Status Card -->
+    <div class="card">
+      <div class="status-card">
+        <div class="status-indicator" id="statusIndicator">
+          <svg viewBox="0 0 24 24" id="statusIcon">
+            <!-- Stopped: X icon -->
+            <path id="iconStopped" d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+            <!-- Running: Checkmark icon -->
+            <path id="iconRunning" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" style="display:none"/>
+          </svg>
+        </div>
+        <div class="status-info">
+          <div class="status-text" id="statusText">Stopped</div>
+          <div class="status-detail" id="statusDetail">Services are not running</div>
+        </div>
+        <div class="status-actions">
+          <button id="toggleBtn" onclick="toggleServices()">Start</button>
+        </div>
+      </div>
+      <!-- Individual service status -->
+      <div class="service-status">
+        <div class="service-row">
+          <div class="service-dot" id="relayDot"></div>
+          <span class="service-name">USBMUX Relay</span>
+          <span class="service-badge stopped" id="relayBadge">Stopped</span>
+        </div>
+        <div class="service-row">
+          <div class="service-dot" id="tunnelDot"></div>
+          <span class="service-name">iOS 17+ Tunnel (Backend)</span>
+          <span class="service-badge not-installed" id="tunnelBadge">Unknown</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-start -->
+    <div class="card">
+      <h2>System Auto-Start</h2>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="autostart-info">
+          <h3>Start on Login</h3>
+          <p>Automatically start the relay when you log in (macOS)</p>
+        </div>
+        <div class="autostart-status">
+          <span class="autostart-badge not-installed" id="autoStartBadge">Not Installed</span>
+          <button id="autoStartBtn" class="secondary" onclick="toggleAutoStart()">Install</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage -->
+    <div class="card">
+      <h2>Usage</h2>
+      <p class="section-text">Mount the usbmuxd-socket volume in your container:</p>
+      <div class="code-block">docker run -v usbmuxd-socket:/var/run/usbmuxd your-image</div>
+
+      <p class="section-text" style="margin-top: 16px;">Test with go-ios:</p>
+      <div class="code-block">docker run --rm -v usbmuxd-socket:/var/run/usbmuxd \
+  ghcr.io/danielpaulus/go-ios:latest list</div>
+    </div>
+
+    <!-- Logs -->
+    <div class="card">
+      <div class="log-header">
+        <h2>Logs</h2>
+        <button class="secondary small" onclick="clearLogs()">Clear</button>
+      </div>
+      <div id="logContainer" class="log-container">
+        <div class="log-empty">No logs available</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ddClient is injected by Docker Desktop - don't redeclare it
+    let statusInterval = null;
+    let logInterval = null;
+    let relayRunning = false;
+    let tunnelRunning = false;
+    let tunnelCount = 0;
+    let autoStartInstalled = false;
+    const LOG_FILE = '/tmp/usbmuxd-relay.log';
+
+    // Use the injected ddClient or create a mock for development
+    function getClient() {
+      return window.ddClient || createMockClient();
+    }
+
+    async function init() {
+      // Check initial states
+      await Promise.all([
+        checkRelayStatus(),
+        checkTunnelStatus(),
+        checkAutoStartStatus(),
+        loadLogs()
+      ]);
+
+      // Start polling for status and logs
+      statusInterval = setInterval(() => {
+        checkRelayStatus();
+        checkTunnelStatus();
+      }, 3000);
+      logInterval = setInterval(loadLogs, 5000);
+    }
+
+    function createMockClient() {
+      return {
+        host: { platform: 'darwin' },
+        extension: {
+          host: {
+            cli: {
+              exec: async (cmd, args, options) => {
+                console.log('Mock exec:', cmd, args);
+                if (options?.stream) {
+                  setTimeout(() => options.stream.onOutput({ stdout: 'Mock output\n' }), 100);
+                }
+                return { stdout: '', stderr: '' };
+              }
+            }
+          },
+          vm: {
+            service: {
+              get: async (url) => ({
+                connected: relayRunning,
+                totalConns: 0,
+                activeConns: 0,
+                bytesRelayed: 0
+              })
+            }
+          }
+        }
+      };
+    }
+
+    const PID_FILE = '/tmp/usbmuxd-relay.pid';
+    const LAUNCHAGENT_LABEL = 'com.docker.usbmuxd-relay';
+
+    async function checkRelayStatus() {
+      try {
+        // Call backend via ddClient (uses compose service port)
+        const status = await getClient().extension.vm.service.get('/status');
+        console.log('Backend status:', status);
+        if (status && typeof status.hostReachable === 'boolean') {
+          relayRunning = status.hostReachable;
+          updateStatusUI();
+          return;
+        }
+      } catch (err) {
+        // Backend not available, fall back to launchctl-helper check
+        console.log('Backend status check failed, using launchctl-helper fallback:', err.message || err);
+      }
+
+      // Fallback: Check if relay process is actually running
+      try {
+        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['running']);
+        const output = (result?.stdout || '').trim();
+        console.log('launchctl-helper running:', output);
+        relayRunning = output === 'running';
+      } catch (err) {
+        console.log('launchctl-helper check failed:', err);
+        relayRunning = false;
+      }
+      updateStatusUI();
+    }
+
+    async function checkTunnelStatus() {
+      try {
+        const status = await getClient().extension.vm.service.get('/tunnel/status');
+        console.log('Tunnel status:', status);
+        if (status && typeof status.enabled === 'boolean') {
+          tunnelRunning = status.enabled && status.tunnelCount > 0;
+          tunnelCount = status.tunnelCount || 0;
+        }
+      } catch (err) {
+        console.log('Tunnel status check failed:', err.message || err);
+        tunnelRunning = false;
+        tunnelCount = 0;
+      }
+      updateStatusUI();
+    }
+
+    async function checkAutoStartStatus() {
+      const badge = document.getElementById('autoStartBadge');
+      const btn = document.getElementById('autoStartBtn');
+
+      if (getClient().host?.platform === 'win32') {
+        badge.textContent = 'Not Supported';
+        btn.disabled = true;
+        return;
+      }
+
+      try {
+        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['status']);
+        console.log('autostart check result:', result);
+        autoStartInstalled = (result?.stdout || '').trim() === 'installed';
+      } catch (err) {
+        console.log('autostart check error:', err);
+        autoStartInstalled = false;
+      }
+
+      if (autoStartInstalled) {
+        badge.textContent = 'Installed';
+        badge.className = 'autostart-badge installed';
+        btn.textContent = 'Uninstall';
+        btn.className = 'secondary';
+      } else {
+        badge.textContent = 'Not Installed';
+        badge.className = 'autostart-badge not-installed';
+        btn.textContent = 'Install';
+        btn.className = 'success';
+      }
+    }
+
+    async function loadLogs() {
+      const container = document.getElementById('logContainer');
+
+      try {
+        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['logs']);
+        const logContent = (result?.stdout || '').trim();
+
+        if (logContent) {
+          container.innerHTML = logContent.split('\n').map(line =>
+            `<div class="log-line">${escapeHtml(line)}</div>`
+          ).join('');
+          container.scrollTop = container.scrollHeight;
+        } else {
+          container.innerHTML = '<div class="log-empty">No logs available</div>';
+        }
+      } catch (err) {
+        console.log('Failed to load logs:', err);
+        container.innerHTML = '<div class="log-empty">No logs available</div>';
+      }
+    }
+
+    async function clearLogs() {
+      try {
+        await getClient().extension.host.cli.exec('launchctl-helper.sh', ['clear-logs']);
+        await loadLogs();
+      } catch (err) {
+        console.log('Failed to clear logs:', err);
+      }
+    }
+
+    function updateStatusUI() {
+      const indicator = document.getElementById('statusIndicator');
+      const text = document.getElementById('statusText');
+      const detail = document.getElementById('statusDetail');
+      const btn = document.getElementById('toggleBtn');
+      const iconStopped = document.getElementById('iconStopped');
+      const iconRunning = document.getElementById('iconRunning');
+
+      // Update individual service status
+      const relayDot = document.getElementById('relayDot');
+      const relayBadge = document.getElementById('relayBadge');
+      const tunnelDot = document.getElementById('tunnelDot');
+      const tunnelBadge = document.getElementById('tunnelBadge');
+
+      // Relay status
+      if (relayRunning) {
+        relayDot.className = 'service-dot running';
+        relayBadge.textContent = 'Running';
+        relayBadge.className = 'service-badge running';
+      } else {
+        relayDot.className = 'service-dot';
+        relayBadge.textContent = 'Stopped';
+        relayBadge.className = 'service-badge stopped';
+      }
+
+      if (tunnelRunning) {
+        tunnelDot.className = 'service-dot running';
+        tunnelBadge.textContent = tunnelCount === 1 ? '1 Tunnel' : `${tunnelCount} Tunnels`;
+        tunnelBadge.className = 'service-badge running';
+      } else {
+        tunnelDot.className = 'service-dot';
+        tunnelBadge.textContent = 'No Tunnels';
+        tunnelBadge.className = 'service-badge stopped';
+      }
+
+      if (relayRunning) {
+        indicator.className = 'status-indicator running';
+        text.textContent = 'Running';
+        text.className = 'status-text running';
+        if (tunnelRunning) {
+          detail.textContent = `Relay active, ${tunnelCount} iOS 17+ device${tunnelCount !== 1 ? 's' : ''} connected`;
+        } else {
+          detail.textContent = 'Relay active, no iOS 17+ devices connected';
+        }
+        btn.textContent = 'Stop';
+        btn.className = 'danger';
+        iconStopped.style.display = 'none';
+        iconRunning.style.display = 'block';
+      } else {
+        indicator.className = 'status-indicator';
+        text.textContent = 'Stopped';
+        text.className = 'status-text stopped';
+        detail.textContent = 'Host relay is not running';
+        btn.textContent = 'Start';
+        btn.className = '';
+        iconStopped.style.display = 'block';
+        iconRunning.style.display = 'none';
+      }
+    }
+
+    async function toggleServices() {
+      if (relayRunning) {
+        await stopServices();
+      } else {
+        await startServices();
+      }
+    }
+
+    async function startServices() {
+      const btn = document.getElementById('toggleBtn');
+      const indicator = document.getElementById('statusIndicator');
+      const text = document.getElementById('statusText');
+      const detail = document.getElementById('statusDetail');
+
+      btn.disabled = true;
+      btn.textContent = 'Starting...';
+      indicator.className = 'status-indicator starting';
+      text.textContent = 'Starting';
+      text.className = 'status-text starting';
+      detail.textContent = 'Initializing services...';
+
+      try {
+        // Start relay via helper script (handles background process and PID file)
+        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['start']);
+        const output = (result?.stdout || '').trim();
+        console.log('start result:', output);
+
+        if (output === 'started' || output === 'already_running') {
+          relayRunning = true;
+        }
+
+        // Give it a moment to start, then refresh status
+        setTimeout(async () => {
+          await checkRelayStatus();
+          await checkTunnelStatus();
+          await loadLogs();
+        }, 1000);
+
+        updateStatusUI();
+        btn.disabled = false;
+      } catch (err) {
+        console.error('startServices error:', err);
+        relayRunning = false;
+        updateStatusUI();
+        btn.disabled = false;
+        loadLogs();
+      }
+    }
+
+    async function stopServices() {
+      const btn = document.getElementById('toggleBtn');
+      btn.disabled = true;
+      btn.textContent = 'Stopping...';
+
+      try {
+        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['stop']);
+        console.log('stop result:', (result?.stdout || '').trim());
+      } catch (err) {
+        console.log('stop error (may be expected):', err);
+      }
+
+      relayRunning = false;
+      updateStatusUI();
+      btn.disabled = false;
+      loadLogs();
+    }
+
+    async function toggleAutoStart() {
+      const btn = document.getElementById('autoStartBtn');
+
+      btn.disabled = true;
+
+      try {
+        const command = autoStartInstalled ? 'uninstall' : 'install';
+        btn.textContent = autoStartInstalled ? 'Uninstalling...' : 'Installing...';
+
+        console.log('Running launchctl-helper.sh', command);
+        await getClient().extension.host.cli.exec('launchctl-helper.sh', [command]);
+
+        await checkAutoStartStatus();
+      } catch (err) {
+        console.error('toggleAutoStart error:', err);
+      }
+
+      btn.disabled = false;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

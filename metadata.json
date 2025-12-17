@@ -1,0 +1,33 @@
+{
+  "icon": "icon.png",
+  "vm": {
+    "composefile": "docker-compose.yaml",
+    "exposes": {
+      "socket": "backend.sock"
+    }
+  },
+  "ui": {
+    "dashboard-tab": {
+      "title": "usbmuxd",
+      "src": "index.html",
+      "root": "ui",
+      "backend": {
+        "socket": "backend.sock"
+      }
+    }
+  },
+  "host": {
+    "binaries": [
+      {
+        "darwin": [
+          { "path": "/host/darwin/usbmuxd-relay" },
+          { "path": "/scripts/launchctl-helper.sh" }
+        ],
+        "linux": [
+          { "path": "/host/linux/usbmuxd-relay" },
+          { "path": "/scripts/launchctl-helper.sh" }
+        ]
+      }
+    ]
+  }
+}
