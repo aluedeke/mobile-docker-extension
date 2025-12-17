@@ -6,8 +6,7 @@ services:
       - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
     command: [
       "/backend",
-      "-socket", "/run/guest-services/backend.sock",
-      "-tunnel"
+      "-socket", "/run/guest-services/backend.sock"
     ]
     restart: unless-stopped
     cap_add:

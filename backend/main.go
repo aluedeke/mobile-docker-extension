@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	socketPath   = flag.String("socket", "/run/guest-services/backend.sock", "Unix socket for API")
-	enableTunnel = flag.Bool("tunnel", true, "Enable iOS 17.4+ tunnel manager (creates kernel TUN devices)")
+	socketPath = flag.String("socket", "/run/guest-services/backend.sock", "Unix socket for API")
 )
 
 func getHostAddr() string {
@@ -165,15 +164,13 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	// Start tunnel manager if enabled (for iOS 17.4+ devices)
-	if *enableTunnel {
-		tunnelManager = NewTunnelManager()
-		tunnelManager.Start(context.Background())
-		log.Printf("Tunnel manager enabled for iOS 17.4+ devices")
+	// Start tunnel manager for iOS 17.4+ devices
+	tunnelManager = NewTunnelManager()
+	tunnelManager.Start(context.Background())
+	log.Printf("Tunnel manager started for iOS 17.4+ devices")
 
-		// Start go-ios compatible tunnel info API on port 60105
-		go startTunnelInfoAPI()
-	}
+	// Start go-ios compatible tunnel info API on port 60105
+	go startTunnelInfoAPI()
 
 	// Start API server
 	go startAPI()
