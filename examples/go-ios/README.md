@@ -23,10 +23,10 @@ docker compose run --rm go-ios info
 
 ## iOS 17.4+ Devices
 
-For iOS 17.4+ devices, go-ios automatically starts a kernel TUN tunnel when needed (via `ENABLE_GO_IOS_AGENT=kernel`):
+For iOS 17.4+ devices, the extension's backend container (`ios-tunnel`) automatically manages kernel TUN tunnels. Your container shares the network namespace with `ios-tunnel` to access these tunnels.
 
 ```bash
-# List active tunnels
+# List active tunnels (managed by ios-tunnel backend)
 docker compose run --rm go-ios tunnel ls
 
 # Get display info (requires tunnel - uses CoreDevice XPC service)
@@ -59,10 +59,13 @@ docker compose run --rm -v /path/to/app.ipa:/app.ipa go-ios install /app.ipa
 
 The docker-compose.yaml configures the go-ios container to:
 
-1. **Mount `usbmuxd-socket` volume**: Provides access to the relayed usbmuxd socket
-2. **Set `USBMUXD_SOCKET_ADDRESS`**: Tells go-ios where to find the usbmuxd socket
-3. **Set `ENABLE_GO_IOS_AGENT=kernel`**: Automatically starts the go-ios tunnel agent for iOS 17.4+ features
-4. **Add `NET_ADMIN` capability and `/dev/net/tun`**: Required for creating kernel TUN devices
+1. **Share network with `ios-tunnel`**: Uses `network_mode: "container:ios-tunnel"` to access the TUN interfaces created by the backend for iOS 17.4+ tunnels
+2. **Set `USBMUXD_SOCKET_ADDRESS`**: Tells go-ios to connect to usbmuxd via TCP at `host.docker.internal:27015`
+
+The backend container (`ios-tunnel`) handles:
+- Creating and managing kernel TUN tunnels for iOS 17.4+ devices
+- Providing a tunnel info API on port 60105 (go-ios compatible)
+- Automatic tunnel lifecycle management (create on device connect, cleanup on disconnect)
 
 ## Which Commands Need the Tunnel?
 
