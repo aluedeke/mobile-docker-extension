@@ -6,7 +6,6 @@ services:
       - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
     command: [
       "/backend",
-      "-host", "host.docker.internal:27015",
       "-socket", "/run/guest-services/backend.sock",
       "-tunnel"
     ]

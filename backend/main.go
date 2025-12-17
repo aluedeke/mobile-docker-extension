@@ -14,17 +14,23 @@ import (
 )
 
 var (
-	hostAddr     = flag.String("host", "host.docker.internal:27015", "Host relay address")
 	socketPath   = flag.String("socket", "/run/guest-services/backend.sock", "Unix socket for API")
 	enableTunnel = flag.Bool("tunnel", true, "Enable iOS 17.4+ tunnel manager (creates kernel TUN devices)")
 )
+
+func getHostAddr() string {
+	if addr := os.Getenv("USBMUXD_SOCKET_ADDRESS"); addr != "" {
+		return addr
+	}
+	return "host.docker.internal:27015"
+}
 
 // Tunnel manager instance (for iOS 17.4+ devices)
 var tunnelManager *TunnelManager
 
 // checkHostConnection does a quick TCP dial to see if host relay is reachable
 func checkHostConnection() bool {
-	conn, err := net.DialTimeout("tcp", *hostAddr, 2*time.Second)
+	conn, err := net.DialTimeout("tcp", getHostAddr(), 2*time.Second)
 	if err != nil {
 		return false
 	}
@@ -111,7 +117,7 @@ func startAPI() {
 
 		status := map[string]interface{}{
 			"hostReachable": hostReachable,
-			"hostAddress":   *hostAddr,
+			"hostAddress":   getHostAddr(),
 		}
 		json.NewEncoder(w).Encode(status)
 	})
