@@ -288,7 +288,7 @@
         </div>
         <div class="service-row">
           <div class="service-dot" id="tunnelDot"></div>
-          <span class="service-name">iOS 17+ Tunnel (Backend)</span>
+          <span class="service-name">iOS 17+ Tunnel (integrated)</span>
           <span class="service-badge not-installed" id="tunnelBadge">Unknown</span>
         </div>
       </div>
@@ -300,7 +300,7 @@
       <div style="display: flex; align-items: center; justify-content: space-between;">
         <div class="autostart-info">
           <h3>Start on Login</h3>
-          <p>Automatically start the relay when you log in (macOS)</p>
+          <p>Automatically start the relay (with integrated tunnel) when you log in (macOS)</p>
         </div>
         <div class="autostart-status">
           <span class="autostart-badge not-installed" id="autoStartBadge">Not Installed</span>
@@ -312,11 +312,21 @@
     <!-- Usage -->
     <div class="card">
       <h2>Usage</h2>
-      <p class="section-text">Mount the usbmuxd-socket volume in your container:</p>
-      <div class="code-block">docker run -v usbmuxd-socket:/var/run/usbmuxd your-image</div>
+      <p class="section-text">Set the USBMUXD_SOCKET_ADDRESS environment variable in your container:</p>
+      <div class="code-block">docker run -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 your-image</div>
+
+      <p class="section-text" style="margin-top: 16px;">For iOS 17.4+ tunnel support, also set:</p>
+      <div class="code-block">docker run \
+  -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+  -e GO_IOS_AGENT_HOST=host.docker.internal \
+  -e GO_IOS_AGENT_PORT=60105 \
+  your-image</div>
 
       <p class="section-text" style="margin-top: 16px;">Test with go-ios:</p>
-      <div class="code-block">docker run --rm -v usbmuxd-socket:/var/run/usbmuxd \
+      <div class="code-block">docker run --rm \
+  -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+  -e GO_IOS_AGENT_HOST=host.docker.internal \
+  -e GO_IOS_AGENT_PORT=60105 \
   ghcr.io/danielpaulus/go-ios:latest list</div>
     </div>
 
@@ -338,9 +348,7 @@
     let logInterval = null;
     let relayRunning = false;
     let tunnelRunning = false;
-    let tunnelCount = 0;
     let autoStartInstalled = false;
-    const LOG_FILE = '/tmp/usbmuxd-relay.log';
 
     // Use the injected ddClient or create a mock for development
     function getClient() {
@@ -382,19 +390,13 @@
           vm: {
             service: {
               get: async (url) => ({
-                connected: relayRunning,
-                totalConns: 0,
-                activeConns: 0,
-                bytesRelayed: 0
+                hostReachable: relayRunning
               })
             }
           }
         }
       };
     }
-
-    const PID_FILE = '/tmp/usbmuxd-relay.pid';
-    const LAUNCHAGENT_LABEL = 'com.docker.usbmuxd-relay';
 
     async function checkRelayStatus() {
       try {
@@ -425,18 +427,9 @@
     }
 
     async function checkTunnelStatus() {
-      try {
-        const status = await getClient().extension.vm.service.get('/tunnel/status');
-        console.log('Tunnel status:', status);
-        if (status && typeof status.enabled === 'boolean') {
-          tunnelRunning = status.enabled && status.tunnelCount > 0;
-          tunnelCount = status.tunnelCount || 0;
-        }
-      } catch (err) {
-        console.log('Tunnel status check failed:', err.message || err);
-        tunnelRunning = false;
-        tunnelCount = 0;
-      }
+      // Tunnel is now integrated into the relay binary
+      // Its status follows the relay status
+      tunnelRunning = relayRunning;
       updateStatusUI();
     }
 
@@ -527,24 +520,26 @@
         relayBadge.className = 'service-badge stopped';
       }
 
+      // Tunnel status
       if (tunnelRunning) {
         tunnelDot.className = 'service-dot running';
-        tunnelBadge.textContent = tunnelCount === 1 ? '1 Tunnel' : `${tunnelCount} Tunnels`;
+        tunnelBadge.textContent = 'Running';
         tunnelBadge.className = 'service-badge running';
       } else {
         tunnelDot.className = 'service-dot';
-        tunnelBadge.textContent = 'No Tunnels';
+        tunnelBadge.textContent = 'Stopped';
         tunnelBadge.className = 'service-badge stopped';
       }
 
+      // Overall status
       if (relayRunning) {
         indicator.className = 'status-indicator running';
         text.textContent = 'Running';
         text.className = 'status-text running';
         if (tunnelRunning) {
-          detail.textContent = `Relay active, ${tunnelCount} iOS 17+ device${tunnelCount !== 1 ? 's' : ''} connected`;
+          detail.textContent = 'Relay and iOS 17+ tunnel active';
         } else {
-          detail.textContent = 'Relay active, no iOS 17+ devices connected';
+          detail.textContent = 'Relay active (tunnel not running)';
         }
         btn.textContent = 'Stop';
         btn.className = 'danger';
@@ -554,7 +549,7 @@
         indicator.className = 'status-indicator';
         text.textContent = 'Stopped';
         text.className = 'status-text stopped';
-        detail.textContent = 'Host relay is not running';
+        detail.textContent = 'Host services are not running';
         btn.textContent = 'Start';
         btn.className = '';
         iconStopped.style.display = 'block';
@@ -584,7 +579,7 @@
       detail.textContent = 'Initializing services...';
 
       try {
-        // Start relay via helper script (handles background process and PID file)
+        // Start relay and tunnel via helper script
         const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['start']);
         const output = (result?.stdout || '').trim();
         console.log('start result:', output);
@@ -624,6 +619,7 @@
       }
 
       relayRunning = false;
+      tunnelRunning = false;
       updateStatusUI();
       btn.disabled = false;
       loadLogs();

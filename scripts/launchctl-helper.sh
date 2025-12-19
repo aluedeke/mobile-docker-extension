@@ -1,19 +1,23 @@
 #!/bin/bash
-# LaunchAgent helper for usbmuxd-relay on macOS
+# LaunchAgent helper for mobile-relay on macOS
+# The relay binary now includes iOS 17.4+ tunnel management
 # Usage: launchctl-helper.sh <command>
 # Commands: install, uninstall, status, running, start, stop, logs, clear-logs
 
 set -e
 
-LABEL="com.docker.usbmuxd-relay"
+RELAY_LABEL="com.docker.mobile-relay"
 EXT_BASE="$HOME/Library/Containers/com.docker.docker/Data/extensions/aluedeke_usbmuxd-docker-extension"
-RELAY_PATH="$EXT_BASE/host/usbmuxd-relay"
-PLIST_PATH="$HOME/Library/LaunchAgents/$LABEL.plist"
+RELAY_PATH="$EXT_BASE/host/mobile-relay"
+RELAY_PLIST="$HOME/Library/LaunchAgents/$RELAY_LABEL.plist"
+
+LOG_FILE="/tmp/mobile-relay.log"
+PID_FILE="/tmp/mobile-relay.pid"
 
 cmd_install() {
     # Check if relay exists
     if [ ! -f "$RELAY_PATH" ]; then
-        echo "Error: usbmuxd-relay not found at $RELAY_PATH"
+        echo "Error: mobile-relay not found at $RELAY_PATH"
         echo "Make sure the Docker extension is installed first."
         exit 1
     fi
@@ -24,15 +28,14 @@ cmd_install() {
     # Ad-hoc code sign the binary
     codesign -s - -f "$RELAY_PATH" 2>/dev/null || true
 
-    # Create LaunchAgent plist for relay (just usbmuxd forwarding)
-    # Bind to 127.0.0.1 so Docker VM can reach it via host.docker.internal
-    cat > "$PLIST_PATH" << EOF
+    # Create LaunchAgent plist for relay (includes tunnel manager)
+    cat > "$RELAY_PLIST" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>$LABEL</string>
+    <string>$RELAY_LABEL</string>
     <key>ProgramArguments</key>
     <array>
         <string>$RELAY_PATH</string>
@@ -40,41 +43,43 @@ cmd_install() {
         <string>27015</string>
         <string>-addr</string>
         <string>127.0.0.1</string>
+        <string>-tunnel-port</string>
+        <string>60105</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/usbmuxd-relay.log</string>
+    <string>$LOG_FILE</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/usbmuxd-relay.log</string>
+    <string>$LOG_FILE</string>
 </dict>
 </plist>
 EOF
 
-    # Load the relay agent
-    launchctl unload "$PLIST_PATH" 2>/dev/null || true
-    launchctl load "$PLIST_PATH"
+    # Load the agent
+    launchctl unload "$RELAY_PLIST" 2>/dev/null || true
+    launchctl load "$RELAY_PLIST"
 
     echo "installed"
 }
 
 cmd_uninstall() {
     # Unload and remove relay LaunchAgent
-    if [ -f "$PLIST_PATH" ]; then
-        launchctl unload "$PLIST_PATH" 2>/dev/null || true
-        rm "$PLIST_PATH"
+    if [ -f "$RELAY_PLIST" ]; then
+        launchctl unload "$RELAY_PLIST" 2>/dev/null || true
+        rm "$RELAY_PLIST"
     fi
 
-    # Kill any running relay
-    pkill -f usbmuxd-relay 2>/dev/null || true
+    # Kill any running processes
+    pkill -f mobile-relay 2>/dev/null || true
 
     echo "uninstalled"
 }
 
 cmd_status() {
-    if launchctl list "$LABEL" >/dev/null 2>&1; then
+    if launchctl list "$RELAY_LABEL" >/dev/null 2>&1; then
         echo "installed"
     else
         echo "not_installed"
@@ -83,36 +88,30 @@ cmd_status() {
 
 cmd_running() {
     # Check if relay process is actually running
-    if pgrep -f usbmuxd-relay >/dev/null 2>&1; then
+    if pgrep -f mobile-relay >/dev/null 2>&1; then
         echo "running"
     else
         echo "stopped"
     fi
 }
 
-LOG_FILE="/tmp/usbmuxd-relay.log"
-PID_FILE="/tmp/usbmuxd-relay.pid"
-
 cmd_start() {
     # Start relay manually (without LaunchAgent)
-    # Check if already running by process name (more reliable than PID file)
-    if pgrep -f usbmuxd-relay >/dev/null 2>&1; then
+    if pgrep -f mobile-relay >/dev/null 2>&1; then
         echo "already_running"
         return
     fi
 
-    # Clean up any stale PID file
+    # Clean up any stale PID files
     rm -f "$PID_FILE"
 
-    # Start relay in background
-    # The relay binary manages its own PID file
-    # Bind to 127.0.0.1 so Docker VM can reach it via host.docker.internal
-    nohup "$RELAY_PATH" -port 27015 -addr 127.0.0.1 >> "$LOG_FILE" 2>&1 &
+    # Start relay in background (includes tunnel manager)
+    nohup "$RELAY_PATH" -port 27015 -addr 127.0.0.1 -tunnel-port 60105 >> "$LOG_FILE" 2>&1 &
 
-    # Wait briefly for relay to start and write its PID file
+    # Wait briefly for process to start
     sleep 1
 
-    if pgrep -f usbmuxd-relay >/dev/null 2>&1; then
+    if pgrep -f mobile-relay >/dev/null 2>&1; then
         echo "started"
     else
         echo "failed"
@@ -127,15 +126,16 @@ cmd_stop() {
         rm -f "$PID_FILE"
     fi
 
-    # Also kill any running relay process by name
-    pkill -f usbmuxd-relay 2>/dev/null || true
+    # Also kill any running processes by name
+    pkill -f mobile-relay 2>/dev/null || true
 
     echo "stopped"
 }
 
 cmd_logs() {
+    echo "=== mobile-relay logs (includes tunnel manager) ==="
     if [ -f "$LOG_FILE" ]; then
-        tail -100 "$LOG_FILE"
+        tail -50 "$LOG_FILE"
     fi
 }
 

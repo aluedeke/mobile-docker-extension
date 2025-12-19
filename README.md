@@ -4,31 +4,34 @@ A Docker Desktop extension that exposes macOS/Linux USB-connected iOS devices to
 
 ## What it does
 
-This extension creates a bridge between the host's usbmuxd daemon and Docker containers, allowing tools like `go-ios`, `libimobiledevice`, and other iOS automation tools to communicate with physical iOS devices from within containers.
+This extension creates a bridge between the host's usbmuxd daemon and Docker containers, allowing tools like `go-ios`, `pymobiledevice3`, `libimobiledevice`, and other iOS automation tools to communicate with physical iOS devices from within containers.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │ macOS Host                                                      │
 │                                                                 │
 │  iPhone ──USB──► /var/run/usbmuxd                              │
-│                        ↑                                        │
-│                  usbmuxd-relay (TCP :27015)                     │
-│                        ↑                                        │
+│                        │                                        │
+│              mobile-relay (TCP :27015)                         │
+│              + tunnel manager (:60105)                         │
+│                        │                                        │
 └────────────────────────┼────────────────────────────────────────┘
                          │ host.docker.internal:27015
 ┌────────────────────────┼────────────────────────────────────────┐
-│ Docker Desktop VM      ↓                                        │
-│                  ┌─────────────┐                                │
-│                  │ ios-tunnel  │ (manages iOS 17.4+ tunnels)    │
-│                  │  backend    │                                │
-│                  └──────┬──────┘                                │
-│                         │ TUN interfaces                        │
-│  ┌──────────────────────┼──────────────────────────────────────┐│
-│  │ Your Container       │ (network_mode: container:ios-tunnel) ││
-│  │                      ↓                                      ││
-│  │   USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015         ││
+│ Docker Desktop VM      ▼                                        │
+│              ┌─────────────────┐                                │
+│              │ usbmuxd-backend │                                │
+│              └────────┬────────┘                                │
+│                       │                                         │
+│                       ▼                                         │
+│     /run/guest-services/.../usbmuxd.sock                       │
+│                       │                                         │
+│  ┌────────────────────┼────────────────────────────────────────┐│
+│  │ Your Container     │                                        ││
+│  │                    ▼                                        ││
+│  │          /var/run/usbmuxd (volume mount)                    ││
 │  │                                                             ││
-│  │   go-ios, libimobiledevice, idevice_id, etc.               ││
+│  │   go-ios, pymobiledevice3, libimobiledevice, etc.          ││
 │  └─────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -64,15 +67,17 @@ docker extension install aluedeke/usbmuxd-docker-extension
 
 The host relay must be running to bridge connections. You can start it from:
 
-**Option A: Docker Desktop UI**
+#### Option A: Docker Desktop UI
+
 - Open Docker Desktop
 - Go to the "USB Muxd" extension tab
 - Click "Start Host Relay"
 
-**Option B: Command line**
+#### Option B: Command line
+
 ```bash
 # If installed via extension
-~/.docker/extensions/aluedeke_usbmuxd-docker-extension/host/darwin/usbmuxd-relay
+~/.docker/extensions/aluedeke_usbmuxd-docker-extension/host/darwin/mobile-relay
 
 # Or build and run locally
 make run-host
@@ -80,97 +85,85 @@ make run-host
 
 ### 2. Configure your containers
 
-Set the `USBMUXD_SOCKET_ADDRESS` environment variable to connect to the host relay:
+Mount the usbmuxd socket into your container at `/var/run/usbmuxd`:
 
-**Docker run:**
+#### Docker Compose
+
+```yaml
+services:
+  ios-automation:
+    image: your-image
+    volumes:
+      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+```
+
+#### Docker run
+
 ```bash
-docker run -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 your-image
+docker run -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd your-image
 ```
 
-**Docker Compose:**
-```yaml
-services:
-  ios-automation:
-    image: your-image
-    environment:
-      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
-```
-
-### 3. For iOS 17.4+ features (tunnels)
-
-iOS 17.4+ requires kernel TUN tunnels for many features. The extension's backend container (`ios-tunnel`) manages these automatically. To access them, share its network namespace:
-
-```yaml
-services:
-  ios-automation:
-    image: your-image
-    network_mode: "container:ios-tunnel"
-    environment:
-      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
-```
-
-### 4. Use iOS tools normally
+### 3. Use iOS tools normally
 
 Once configured, iOS tools work as if running on the host:
 
 ```bash
 # List connected devices with go-ios
-docker run --rm -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+docker run --rm \
+  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   ghcr.io/danielpaulus/go-ios:latest list
 
-# Use libimobiledevice tools
-docker run --rm -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
-  alpine sh -c "apk add libimobiledevice && idevice_id -l"
+# Use pymobiledevice3
+docker run --rm \
+  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
+  python:3.12-slim sh -c "pip install pymobiledevice3 && pymobiledevice3 usbmux list"
 ```
+
+### 4. iOS 17.4+ tunnel features (go-ios only)
+
+For go-ios iOS 17.4+ features that require tunnels, add the tunnel agent environment variables:
+
+```yaml
+services:
+  go-ios:
+    image: ghcr.io/danielpaulus/go-ios:latest
+    volumes:
+      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+    environment:
+      - GO_IOS_AGENT_HOST=host.docker.internal
+      - GO_IOS_AGENT_PORT=60105
+```
+
+Note: pymobiledevice3 handles tunnels transparently over the usbmuxd socket and doesn't need these environment variables.
 
 ## Examples
 
-See the [examples/go-ios](examples/go-ios) directory for a complete example using go-ios.
+See the example directories for complete working examples:
 
-### iOS Test Automation
-
-```yaml
-# docker-compose.yaml
-services:
-  appium:
-    image: appium/appium
-    network_mode: "container:ios-tunnel"
-    environment:
-      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
-    ports:
-      - "4723:4723"
-```
-
-### Device Farm
-
-```yaml
-services:
-  device-manager:
-    image: your-device-manager
-    network_mode: "container:ios-tunnel"
-    environment:
-      - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
-```
+- [examples/go-ios](examples/go-ios) - Using go-ios with the extension
+- [examples/pymobiledevice3](examples/pymobiledevice3) - Using pymobiledevice3 with the extension
 
 ### Quick Device Check
 
 ```bash
-# Check if devices are accessible
-docker run --rm -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+# Using go-ios
+docker run --rm \
+  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   ghcr.io/danielpaulus/go-ios:latest list
 
-# Get device info
-docker run --rm -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
-  ghcr.io/danielpaulus/go-ios:latest info
+# Using pymobiledevice3
+cd examples/pymobiledevice3
+docker compose build
+docker compose run --rm pymobiledevice3 usbmux list
 ```
 
 ## Troubleshooting
 
-### "Connection refused" when connecting to usbmuxd
+### "Connection refused" or socket errors
 
-1. Verify the host relay is running: `pgrep usbmuxd-relay`
+1. Verify the host relay is running: `pgrep -f mobile-relay`
 2. Check the relay is listening: `lsof -i :27015`
-3. Ensure the `USBMUXD_SOCKET_ADDRESS` environment variable is set correctly
+3. Ensure the socket file exists: `ls -la /run/guest-services/aluedeke_usbmuxd-docker-extension/`
 
 ### "Connection refused" on host relay
 
@@ -184,11 +177,11 @@ docker run --rm -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
 2. Check host usbmuxd directly: `idevice_id -l` (on host)
 3. View relay logs for connection issues
 
-### iOS 17.4+ tunnel features not working
+### iOS 17.4+ tunnel features not working (go-ios)
 
-1. Ensure your container uses `network_mode: "container:ios-tunnel"`
-2. Check the ios-tunnel backend is running: `docker ps | grep ios-tunnel`
-3. View backend logs: `docker logs ios-tunnel`
+1. Ensure `GO_IOS_AGENT_HOST` and `GO_IOS_AGENT_PORT` environment variables are set
+2. Check the host relay tunnel manager is running (port 60105)
+3. View host relay logs for tunnel errors
 
 ## Development
 
@@ -230,11 +223,11 @@ make reset
 
 ## How it works
 
-1. **Host Relay** (`usbmuxd-relay`): A Go binary that runs on the host, listens on TCP port 27015, and forwards connections to the real `/var/run/usbmuxd` socket. Each TCP connection gets its own usbmuxd connection.
+1. **Host Relay** (`mobile-relay`): A Go binary that runs on the host, listens on TCP port 27015, and forwards connections to the real `/var/run/usbmuxd` socket. Also includes a tunnel manager on port 60105 for iOS 17.4+ devices (go-ios compatible).
 
-2. **Backend Service** (`ios-tunnel`): Runs inside the Docker Desktop VM. Manages iOS 17.4+ kernel TUN tunnels automatically. Provides a tunnel info API on port 60105 (go-ios compatible).
+2. **Backend Service** (`usbmuxd-backend`): Runs inside the Docker Desktop VM. Creates a Unix socket that proxies connections to the host relay. Provides an API for the extension UI.
 
-3. **Container Configuration**: Containers connect to usbmuxd via `USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015`. For iOS 17.4+ tunnel access, they share the network namespace with `ios-tunnel`.
+3. **Container Configuration**: Containers mount the backend's Unix socket at `/var/run/usbmuxd`. iOS tools use this standard location automatically.
 
 ## License
 

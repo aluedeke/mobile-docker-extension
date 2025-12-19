@@ -6,4 +6,5 @@ bin/
 .DS_Store
 backend/backend
 backend/usbmuxd-backend
-host/usbmuxd-relay
+host/mobile-relay
+host/selfIdentity.plist

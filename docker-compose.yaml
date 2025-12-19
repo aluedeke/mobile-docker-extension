@@ -1,15 +1,13 @@
 services:
+  # Backend API server for extension UI
   usbmuxd-backend:
     image: ${DESKTOP_PLUGIN_IMAGE}
-    container_name: ios-tunnel
+    container_name: usbmuxd-backend
     environment:
       - USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015
     command: [
       "/backend",
-      "-socket", "/run/guest-services/backend.sock"
+      "-socket", "/run/guest-services/backend.sock",
+      "-usbmuxd-socket", "/run/guest-services/usbmuxd.sock"
     ]
     restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun

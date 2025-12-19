@@ -1,8 +1,10 @@
 // host/main.go
 // USB Muxd relay - runs on macOS host, bridges TCP to real usbmuxd socket
+// Also provides iOS 17.4+ tunnel management via go-ios
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -16,14 +18,22 @@ import (
 	"strings"
 	"sync/atomic"
 	"syscall"
+	"time"
+
+	"github.com/danielpaulus/go-ios/ios/tunnel"
 )
 
 var (
 	usbmuxdPath = flag.String("usbmuxd", "/var/run/usbmuxd", "Path to real usbmuxd socket")
 	listenPort  = flag.Int("port", 27015, "TCP port to listen on")
 	listenAddr  = flag.String("addr", "127.0.0.1", "Address to listen on")
-	pidFile     = flag.String("pidfile", "", "Path to PID file (default: /tmp/usbmuxd-relay.pid)")
+	pidFile     = flag.String("pidfile", "", "Path to PID file (default: /tmp/mobile-relay.pid)")
 	logFile     = flag.String("logfile", "", "Path to log file (default: stdout/stderr)")
+
+	// Tunnel options
+	enableTunnel   = flag.Bool("tunnel", true, "Enable iOS 17.4+ tunnel manager")
+	tunnelPort     = flag.Int("tunnel-port", 60105, "Port for tunnel info API")
+	pairRecordPath = flag.String("pair-records", "", "Path for pair records (default: current directory)")
 )
 
 var stats struct {
@@ -36,7 +46,7 @@ func getPidFilePath() string {
 	if *pidFile != "" {
 		return *pidFile
 	}
-	return "/tmp/usbmuxd-relay.pid"
+	return "/tmp/mobile-relay.pid"
 }
 
 func checkExistingProcess() (int, bool) {
@@ -73,8 +83,8 @@ func checkExistingProcess() (int, bool) {
 	}
 
 	procName := strings.TrimSpace(string(output))
-	if !strings.Contains(procName, "usbmuxd-relay") {
-		log.Printf("PID %d exists but is '%s', not usbmuxd-relay - removing stale PID file", pid, procName)
+	if !strings.Contains(procName, "mobile-relay") {
+		log.Printf("PID %d exists but is '%s', not mobile-relay - removing stale PID file", pid, procName)
 		os.Remove(pidPath)
 		return 0, false
 	}
@@ -136,6 +146,44 @@ func handleConnection(tcpConn net.Conn) {
 	log.Printf("Connection closed from %s (active: %d)", tcpConn.RemoteAddr(), atomic.LoadInt32(&stats.activeConns)-1)
 }
 
+// startTunnelManager starts the iOS 17.4+ tunnel manager
+func startTunnelManager(ctx context.Context, recordsPath string, port int) (*tunnel.TunnelManager, error) {
+	pm, err := tunnel.NewPairRecordManager(recordsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pair record manager: %w", err)
+	}
+
+	// Use userspace TUN (no root/TUN device required)
+	tm := tunnel.NewTunnelManager(pm, true)
+
+	// Periodically check for devices and update tunnels
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				err := tm.UpdateTunnels(ctx)
+				if err != nil {
+					log.Printf("Tunnel update error: %v", err)
+				}
+			}
+		}
+	}()
+
+	// Start HTTP API for tunnel info
+	go func() {
+		err := tunnel.ServeTunnelInfo(tm, port)
+		if err != nil {
+			log.Printf("Tunnel info server error: %v", err)
+		}
+	}()
+
+	return tm, nil
+}
+
 func main() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -168,6 +216,25 @@ func main() {
 	}
 	log.Printf("PID file written to %s", getPidFilePath())
 
+	// Start tunnel manager for iOS 17.4+ devices
+	ctx, cancel := context.WithCancel(context.Background())
+	var tm *tunnel.TunnelManager
+	if *enableTunnel {
+		recordsPath := *pairRecordPath
+		if recordsPath == "" {
+			recordsPath = "."
+		}
+		var err error
+		tm, err = startTunnelManager(ctx, recordsPath, *tunnelPort)
+		if err != nil {
+			log.Printf("Warning: Failed to start tunnel manager: %v", err)
+			log.Printf("iOS 17.4+ tunnel features will not be available")
+		} else {
+			log.Printf("iOS 17.4+ tunnel manager started on port %d", *tunnelPort)
+			log.Printf("Containers should use GO_IOS_AGENT_HOST=host.docker.internal GO_IOS_AGENT_PORT=%d", *tunnelPort)
+		}
+	}
+
 	addr := fmt.Sprintf("%s:%d", *listenAddr, *listenPort)
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -185,6 +252,10 @@ func main() {
 	go func() {
 		<-sigCh
 		log.Printf("Shutting down...")
+		cancel()
+		if tm != nil {
+			tm.Close()
+		}
 		removePidFile()
 		listener.Close()
 		os.Exit(0)

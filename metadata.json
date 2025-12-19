@@ -20,11 +20,11 @@
     "binaries": [
       {
         "darwin": [
-          { "path": "/host/darwin/usbmuxd-relay" },
+          { "path": "/host/darwin/mobile-relay" },
           { "path": "/scripts/launchctl-helper.sh" }
         ],
         "linux": [
-          { "path": "/host/linux/usbmuxd-relay" },
+          { "path": "/host/linux/mobile-relay" },
           { "path": "/scripts/launchctl-helper.sh" }
         ]
       }

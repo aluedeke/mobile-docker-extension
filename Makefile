@@ -29,8 +29,8 @@ reset:
 
 # Build host binary locally (for testing)
 build-host:
-	cd host && go build -o ../bin/usbmuxd-relay main.go
-	codesign -s - bin/usbmuxd-relay 2>/dev/null || true
+	cd host && go build -o ../bin/mobile-relay main.go
+	codesign -s - bin/mobile-relay 2>/dev/null || true
 
 # Build backend locally (for testing)
 build-backend:
@@ -38,7 +38,7 @@ build-backend:
 
 # Run host relay locally for testing
 run-host: build-host
-	./bin/usbmuxd-relay -port 27015
+	./bin/mobile-relay -port 27015
 
 # Install auto-start (macOS LaunchAgent)
 autostart-install:
@@ -51,7 +51,7 @@ autostart-uninstall:
 # Check auto-start status
 autostart-status:
 	@launchctl list | grep usbmuxd || echo "Not running"
-	@[ -f ~/Library/LaunchAgents/com.docker.usbmuxd-relay.plist ] && echo "LaunchAgent: installed" || echo "LaunchAgent: not installed"
+	@[ -f ~/Library/LaunchAgents/com.docker.mobile-relay.plist ] && echo "LaunchAgent: installed" || echo "LaunchAgent: not installed"
 
 # Test the socket connection
 test-socket:

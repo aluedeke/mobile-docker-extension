@@ -15,10 +15,10 @@ docker build -t usbmuxd-test .
 
 echo "[2/4] Building host relay..."
 mkdir -p bin
-cd host && go build -o ../bin/usbmuxd-relay main.go && cd ..
+cd host && go build -o ../bin/mobile-relay main.go && cd ..
 
 echo "[3/4] Starting host relay (background)..."
-./bin/usbmuxd-relay -port 27015 &
+./bin/mobile-relay -port 27015 &
 HOST_PID=$!
 sleep 1
 
