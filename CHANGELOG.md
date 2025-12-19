@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/aluedeke/mobile-docker-extension/compare/v1.1.1...v1.1.2) (2025-12-19)
+
+
+### Bug Fixes
+
+* **docs:** use static Docker Hub badge ([68a34d1](https://github.com/aluedeke/mobile-docker-extension/commit/68a34d103b351e8f8e48d83d6818a198a963eb4e))
+
 ## [1.1.1](https://github.com/aluedeke/mobile-docker-extension/compare/v1.1.0...v1.1.1) (2025-12-19)
 
 
