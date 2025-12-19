@@ -58,10 +58,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Update Docker Hub description
-        if: steps.semantic.outputs.new_release_published == 'true'
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: aluedeke/usbmuxd-docker-extension
           readme-filepath: ./README.md
+        continue-on-error: true
