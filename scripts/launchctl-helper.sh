@@ -8,11 +8,13 @@ set -e
 
 RELAY_LABEL="com.docker.mobile-relay"
 EXT_BASE="$HOME/Library/Containers/com.docker.docker/Data/extensions/aluedeke_usbmuxd-docker-extension"
-RELAY_PATH="$EXT_BASE/host/mobile-relay"
+RELAY_DIR="$EXT_BASE/host"
+RELAY_PATH="$RELAY_DIR/mobile-relay"
 RELAY_PLIST="$HOME/Library/LaunchAgents/$RELAY_LABEL.plist"
 
-LOG_FILE="/tmp/mobile-relay.log"
-PID_FILE="/tmp/mobile-relay.pid"
+# Data files stored next to binary (in extension directory)
+LOG_FILE="$RELAY_DIR/mobile-relay.log"
+PID_FILE="$RELAY_DIR/mobile-relay.pid"
 
 cmd_install() {
     # Check if relay exists

@@ -31,9 +31,8 @@ RUN go mod tidy
 RUN GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/darwin/mobile-relay .
 RUN GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/darwin-amd64/mobile-relay .
 
-# Build for Linux
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/linux/mobile-relay .
-RUN GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/linux-arm64/mobile-relay .
+# Build for Windows
+RUN GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/windows/mobile-relay.exe .
 
 # Final image
 FROM alpine:3.19

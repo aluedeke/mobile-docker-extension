@@ -11,29 +11,29 @@ import (
 	"log"
 	"net"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/danielpaulus/go-ios/ios/tunnel"
+	ps "github.com/mitchellh/go-ps"
 )
 
 var (
 	usbmuxdPath = flag.String("usbmuxd", "/var/run/usbmuxd", "Path to real usbmuxd socket")
 	listenPort  = flag.Int("port", 27015, "TCP port to listen on")
 	listenAddr  = flag.String("addr", "127.0.0.1", "Address to listen on")
-	pidFile     = flag.String("pidfile", "", "Path to PID file (default: /tmp/mobile-relay.pid)")
+	dataDir     = flag.String("data-dir", "", "Directory for PID/log files (default: next to binary)")
+	pidFile     = flag.String("pidfile", "", "Path to PID file (default: <data-dir>/mobile-relay.pid)")
 	logFile     = flag.String("logfile", "", "Path to log file (default: stdout/stderr)")
 
 	// Tunnel options
 	enableTunnel   = flag.Bool("tunnel", true, "Enable iOS 17.4+ tunnel manager")
 	tunnelPort     = flag.Int("tunnel-port", 60105, "Port for tunnel info API")
-	pairRecordPath = flag.String("pair-records", "", "Path for pair records (default: current directory)")
+	pairRecordPath = flag.String("pair-records", "", "Path for pair records (default: data-dir)")
 )
 
 var stats struct {
@@ -42,11 +42,24 @@ var stats struct {
 	bytesRelayed uint64
 }
 
+// getDataDir returns the directory for storing data files (PID, logs, pair records)
+func getDataDir() string {
+	if *dataDir != "" {
+		return *dataDir
+	}
+	// Default to directory containing the binary
+	exe, err := os.Executable()
+	if err != nil {
+		return "."
+	}
+	return filepath.Dir(exe)
+}
+
 func getPidFilePath() string {
 	if *pidFile != "" {
 		return *pidFile
 	}
-	return "/tmp/mobile-relay.pid"
+	return filepath.Join(getDataDir(), "mobile-relay.pid")
 }
 
 func checkExistingProcess() (int, bool) {
@@ -63,27 +76,16 @@ func checkExistingProcess() (int, bool) {
 		return 0, false
 	}
 
-	process, err := os.FindProcess(pid)
-	if err != nil {
+	// Use go-ps for cross-platform process checking
+	proc, err := ps.FindProcess(pid)
+	if err != nil || proc == nil {
 		os.Remove(pidPath)
 		return 0, false
 	}
 
-	err = process.Signal(syscall.Signal(0))
-	if err != nil {
-		os.Remove(pidPath)
-		return 0, false
-	}
-
-	cmd := exec.Command("ps", "-p", strconv.Itoa(pid), "-o", "comm=")
-	output, err := cmd.Output()
-	if err != nil {
-		os.Remove(pidPath)
-		return 0, false
-	}
-
-	procName := strings.TrimSpace(string(output))
-	if !strings.Contains(procName, "mobile-relay") {
+	// Check if it's actually mobile-relay
+	procName := proc.Executable()
+	if !strings.Contains(strings.ToLower(procName), "mobile-relay") {
 		log.Printf("PID %d exists but is '%s', not mobile-relay - removing stale PID file", pid, procName)
 		os.Remove(pidPath)
 		return 0, false
@@ -224,7 +226,7 @@ func main() {
 	if *enableTunnel {
 		recordsPath := *pairRecordPath
 		if recordsPath == "" {
-			recordsPath = "."
+			recordsPath = getDataDir()
 		}
 		var err error
 		tm, err = startTunnelManager(ctx, recordsPath, *tunnelPort)
@@ -249,7 +251,7 @@ func main() {
 	log.Printf("Containers should use USBMUXD_SOCKET_ADDRESS=host.docker.internal:%d", *listenPort)
 
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigCh, os.Interrupt)
 
 	go func() {
 		<-sigCh

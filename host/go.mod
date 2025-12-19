@@ -2,7 +2,10 @@ module mobile-relay
 
 go 1.22.0
 
-require github.com/danielpaulus/go-ios v1.0.150
+require (
+	github.com/danielpaulus/go-ios v1.0.150
+	github.com/mitchellh/go-ps v1.0.0
+)
 
 require (
 	github.com/Masterminds/semver v1.5.0 // indirect

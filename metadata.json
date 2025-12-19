@@ -23,9 +23,8 @@
           { "path": "/host/darwin/mobile-relay" },
           { "path": "/scripts/launchctl-helper.sh" }
         ],
-        "linux": [
-          { "path": "/host/linux/mobile-relay" },
-          { "path": "/scripts/launchctl-helper.sh" }
+        "windows": [
+          { "path": "/host/windows/mobile-relay.exe" }
         ]
       }
     ]
