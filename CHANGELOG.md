@@ -1,3 +1,10 @@
+## [0.0.3](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.2...v0.0.3) (2025-12-19)
+
+
+### Bug Fixes
+
+* **ci:** use native build platform to avoid slow QEMU emulation ([82a4a9e](https://github.com/aluedeke/mobile-docker-extension/commit/82a4a9ebed770084dc28a00a4c2a10c43f9a6794))
+
 ## [0.0.2](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.1...v0.0.2) (2025-12-19)
 
 
