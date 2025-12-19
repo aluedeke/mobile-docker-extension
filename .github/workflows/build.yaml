@@ -1,0 +1,37 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build extension image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: aluedeke/usbmuxd-docker-extension:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Validate metadata
+        run: |
+          docker create --name ext aluedeke/usbmuxd-docker-extension:${{ github.sha }}
+          docker cp ext:/metadata.json metadata.json
+          docker rm ext
+          cat metadata.json
+          # Basic validation
+          jq -e '.ui' metadata.json
+          jq -e '.vm' metadata.json
+          jq -e '.host' metadata.json

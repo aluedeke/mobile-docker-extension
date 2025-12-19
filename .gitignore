@@ -7,4 +7,4 @@ bin/
 backend/backend
 backend/usbmuxd-backend
 host/mobile-relay
-host/selfIdentity.plist
+**/selfIdentity.plist
