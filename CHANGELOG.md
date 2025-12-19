@@ -1,3 +1,10 @@
+## [0.0.5](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.4...v0.0.5) (2025-12-19)
+
+
+### Bug Fixes
+
+* **docs:** update UI with socket mount documentation ([86bf506](https://github.com/aluedeke/mobile-docker-extension/commit/86bf506757f149a3630392606836228fa4eee0ad))
+
 ## [0.0.4](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.3...v0.0.4) (2025-12-19)
 
 
