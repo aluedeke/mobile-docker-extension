@@ -7,6 +7,8 @@ A Docker Desktop extension that exposes USB-connected iOS devices to Docker cont
 
 > **Note:** This extension is currently only tested on macOS. Linux support is experimental.
 
+![Mobile Device Relay](icon.png)
+
 ## What it does
 
 This extension creates a bridge between the host's usbmuxd daemon and Docker containers, allowing tools like `go-ios`, `pymobiledevice3`, `libimobiledevice`, and other iOS automation tools to communicate with physical iOS devices from within containers.
