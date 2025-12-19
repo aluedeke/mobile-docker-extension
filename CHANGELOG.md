@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/aluedeke/mobile-docker-extension/compare/v1.1.2...v2.0.0) (2025-12-19)
+
+
+### Features
+
+* rename Docker image to mobile-docker-extension ([801ebc5](https://github.com/aluedeke/mobile-docker-extension/commit/801ebc52e55c0fbbb9264f6ba11109f63244c989))
+
+
+### BREAKING CHANGES
+
+* Docker image renamed from aluedeke/usbmuxd-docker-extension
+to aluedeke/mobile-docker-extension. Update your docker extension install
+command accordingly.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ## [1.1.2](https://github.com/aluedeke/mobile-docker-extension/compare/v1.1.1...v1.1.2) (2025-12-19)
 
 
