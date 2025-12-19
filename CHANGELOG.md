@@ -1,3 +1,10 @@
+## [0.0.4](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.3...v0.0.4) (2025-12-19)
+
+
+### Bug Fixes
+
+* rename extension title to Mobile Docker Extension ([d6fe00a](https://github.com/aluedeke/mobile-docker-extension/commit/d6fe00aee267a2f3031e73d6df0c30ba58fafe31))
+
 ## [0.0.3](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.2...v0.0.3) (2025-12-19)
 
 
