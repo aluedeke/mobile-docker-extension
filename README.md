@@ -1,11 +1,11 @@
 # Mobile Device Relay - Docker Extension
 
 [![Build](https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml/badge.svg)](https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-aluedeke%2Fusbmuxd--docker--extension-blue?logo=docker)](https://hub.docker.com/r/aluedeke/mobile-docker-extension)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-aluedeke%2Fmobile--docker--extension-blue?logo=docker)](https://hub.docker.com/r/aluedeke/mobile-docker-extension)
 
 A Docker Desktop extension that exposes USB-connected iOS devices to Docker containers via the usbmuxd protocol.
 
-> **Note:** This extension is currently only tested on macOS. Linux support is experimental.
+> **Note:** This extension is currently only tested on macOS. Windows is untested and using on Linux doesn't make any sense.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" alt="Mobile Device Relay" width="256">
