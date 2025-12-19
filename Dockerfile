@@ -1,5 +1,7 @@
 # Build backend (simple API server, no go-ios dependency)
-FROM golang:1.22-alpine AS backend-builder
+# Use BUILDPLATFORM to run natively, not under QEMU emulation
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS backend-builder
+ARG TARGETOS TARGETARCH
 WORKDIR /app
 
 # Copy go module files first for better caching
@@ -8,12 +10,13 @@ COPY backend/go.mod ./
 # Copy source code
 COPY backend/*.go .
 
-# Ensure go.mod is valid and build
+# Ensure go.mod is valid and build for target platform
 RUN go mod tidy
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /backend .
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags="-s -w" -o /backend .
 
 # Build host binaries (usbmuxd relay)
-FROM golang:1.22-alpine AS host-builder
+# Use BUILDPLATFORM to run natively, not under QEMU emulation
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS host-builder
 WORKDIR /app
 
 # Copy go module files first for better caching
