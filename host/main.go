@@ -200,16 +200,18 @@ func main() {
 		log.Fatalf("Another instance is already running (PID %d). Stop it first or remove %s", existingPid, getPidFilePath())
 	}
 
+	// Check if usbmuxd socket exists, but don't fail - just warn
 	if _, err := os.Stat(*usbmuxdPath); os.IsNotExist(err) {
-		log.Fatalf("usbmuxd socket not found at %s - is usbmuxd running?", *usbmuxdPath)
+		log.Printf("Warning: usbmuxd socket not found at %s", *usbmuxdPath)
+		log.Printf("The relay will start but connections will fail until usbmuxd is available")
+		log.Printf("On macOS, connect an iOS device or start Xcode to activate usbmuxd")
+	} else if testConn, err := net.Dial("unix", *usbmuxdPath); err != nil {
+		log.Printf("Warning: Cannot connect to usbmuxd at %s: %v", *usbmuxdPath, err)
+		log.Printf("The relay will start but connections will fail until usbmuxd is accessible")
+	} else {
+		testConn.Close()
+		log.Printf("Verified usbmuxd is accessible at %s", *usbmuxdPath)
 	}
-
-	testConn, err := net.Dial("unix", *usbmuxdPath)
-	if err != nil {
-		log.Fatalf("Cannot connect to usbmuxd at %s: %v", *usbmuxdPath, err)
-	}
-	testConn.Close()
-	log.Printf("Verified usbmuxd is accessible at %s", *usbmuxdPath)
 
 	if err := writePidFile(); err != nil {
 		log.Fatalf("Failed to write PID file: %v", err)

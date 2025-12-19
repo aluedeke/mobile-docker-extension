@@ -8,7 +8,7 @@
   },
   "ui": {
     "dashboard-tab": {
-      "title": "usbmuxd",
+      "title": "Mobile Device Relay",
       "src": "index.html",
       "root": "ui",
       "backend": {

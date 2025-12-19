@@ -1,6 +1,8 @@
-# USB Muxd Docker Extension
+# Mobile Device Relay - Docker Extension
 
-A Docker Desktop extension that exposes macOS/Linux USB-connected iOS devices to Docker containers via the usbmuxd protocol.
+A Docker Desktop extension that exposes USB-connected iOS devices to Docker containers via the usbmuxd protocol.
+
+> **Note:** This extension is currently only tested on macOS. Linux support is experimental.
 
 ## What it does
 
