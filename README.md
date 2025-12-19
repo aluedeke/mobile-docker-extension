@@ -7,7 +7,9 @@ A Docker Desktop extension that exposes USB-connected iOS devices to Docker cont
 
 > **Note:** This extension is currently only tested on macOS. Linux support is experimental.
 
-![Mobile Device Relay](icon.png)
+<p align="center">
+  <img src="icon.png" alt="Mobile Device Relay" width="256">
+</p>
 
 ## What it does
 
