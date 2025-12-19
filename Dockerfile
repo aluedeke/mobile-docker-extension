@@ -41,7 +41,7 @@ RUN GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/w
 FROM alpine:3.19
 
 # Docker Desktop Extension labels (required)
-LABEL org.opencontainers.image.title="Mobile Device Relay" \
+LABEL org.opencontainers.image.title="Mobile Docker Extension" \
       org.opencontainers.image.description="Access USB-connected iOS devices from Docker containers (macOS only)" \
       org.opencontainers.image.vendor="aluedeke" \
       org.opencontainers.image.source="https://github.com/aluedeke/mobile-docker-extension" \
