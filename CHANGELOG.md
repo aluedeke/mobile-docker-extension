@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/aluedeke/mobile-docker-extension/compare/v1.0.0...v1.1.0) (2025-12-19)
+
+
+### Features
+
+* **ci:** sync README to Docker Hub on release ([8ab4027](https://github.com/aluedeke/mobile-docker-extension/commit/8ab4027ca437068bd7b083e9a6b845569d9c0444))
+
 # 1.0.0 (2025-12-19)
 
 
