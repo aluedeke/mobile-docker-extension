@@ -1,3 +1,10 @@
+## [0.0.2](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.1...v0.0.2) (2025-12-19)
+
+
+### Bug Fixes
+
+* **ci:** build multi-platform Docker images (amd64 + arm64) ([5f36e72](https://github.com/aluedeke/mobile-docker-extension/commit/5f36e729b158d435c2ed8410e34807dd35e4acc6))
+
 ## [0.0.1](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.0...v0.0.1) (2025-12-19)
 
 
