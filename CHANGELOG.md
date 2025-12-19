@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/aluedeke/mobile-docker-extension/compare/v1.1.0...v1.1.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* **docs:** use absolute URL for icon in README ([2823ce6](https://github.com/aluedeke/mobile-docker-extension/commit/2823ce68bc80fee177551f440d5317f2c64a38fc))
+
 # [1.1.0](https://github.com/aluedeke/mobile-docker-extension/compare/v1.0.0...v1.1.0) (2025-12-19)
 
 
