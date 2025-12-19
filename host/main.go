@@ -202,17 +202,18 @@ func main() {
 		log.Fatalf("Another instance is already running (PID %d). Stop it first or remove %s", existingPid, getPidFilePath())
 	}
 
-	// Check if usbmuxd socket exists, but don't fail - just warn
+	// Check if usbmuxd socket exists
+	usbmuxdAvailable := false
 	if _, err := os.Stat(*usbmuxdPath); os.IsNotExist(err) {
 		log.Printf("Warning: usbmuxd socket not found at %s", *usbmuxdPath)
-		log.Printf("The relay will start but connections will fail until usbmuxd is available")
-		log.Printf("On macOS, connect an iOS device or start Xcode to activate usbmuxd")
+		log.Printf("Socket relay will not be started - connect an iOS device to activate usbmuxd")
 	} else if testConn, err := net.Dial("unix", *usbmuxdPath); err != nil {
 		log.Printf("Warning: Cannot connect to usbmuxd at %s: %v", *usbmuxdPath, err)
-		log.Printf("The relay will start but connections will fail until usbmuxd is accessible")
+		log.Printf("Socket relay will not be started until usbmuxd is accessible")
 	} else {
 		testConn.Close()
 		log.Printf("Verified usbmuxd is accessible at %s", *usbmuxdPath)
+		usbmuxdAvailable = true
 	}
 
 	if err := writePidFile(); err != nil {
@@ -239,16 +240,21 @@ func main() {
 		}
 	}
 
-	addr := fmt.Sprintf("%s:%d", *listenAddr, *listenPort)
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		removePidFile()
-		log.Fatalf("Failed to listen on %s: %v", addr, err)
-	}
-	defer listener.Close()
+	// Only start socket relay if usbmuxd is available
+	var listener net.Listener
+	if usbmuxdAvailable {
+		addr := fmt.Sprintf("%s:%d", *listenAddr, *listenPort)
+		var err error
+		listener, err = net.Listen("tcp", addr)
+		if err != nil {
+			removePidFile()
+			log.Fatalf("Failed to listen on %s: %v", addr, err)
+		}
+		defer listener.Close()
 
-	log.Printf("USB Muxd relay listening on %s", addr)
-	log.Printf("Containers should use USBMUXD_SOCKET_ADDRESS=host.docker.internal:%d", *listenPort)
+		log.Printf("USB Muxd relay listening on %s", addr)
+		log.Printf("Containers should use USBMUXD_SOCKET_ADDRESS=host.docker.internal:%d", *listenPort)
+	}
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -261,16 +267,25 @@ func main() {
 			tm.Close()
 		}
 		removePidFile()
-		listener.Close()
+		if listener != nil {
+			listener.Close()
+		}
 		os.Exit(0)
 	}()
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Printf("Accept error: %v", err)
-			continue
+	// Accept connections if socket relay is running
+	if listener != nil {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Printf("Accept error: %v", err)
+				continue
+			}
+			go handleConnection(conn)
 		}
-		go handleConnection(conn)
+	} else {
+		// No socket relay, just wait for signal (tunnel manager may still be running)
+		log.Printf("Running in tunnel-only mode (no socket relay)")
+		select {}
 	}
 }
