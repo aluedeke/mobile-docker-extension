@@ -1,4 +1,4 @@
-# go-ios with usbmuxd-docker-extension
+# go-ios with mobile-docker-extension
 # See README.md for usage instructions
 
 services:
@@ -6,7 +6,7 @@ services:
     build: .
     volumes:
       # Bind mount the usbmuxd socket directly to the expected location
-      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+      - /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd
     environment:
       # Connect to go-ios tunnel API on host (for iOS 17.4+)
       - GO_IOS_AGENT_HOST=host.docker.internal

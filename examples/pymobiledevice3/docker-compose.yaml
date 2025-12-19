@@ -1,4 +1,4 @@
-# pymobiledevice3 with usbmuxd-docker-extension
+# pymobiledevice3 with mobile-docker-extension
 # See README.md for usage instructions
 
 services:
@@ -6,4 +6,4 @@ services:
     build: .
     volumes:
       # Bind mount the usbmuxd socket directly to the expected location
-      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+      - /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd

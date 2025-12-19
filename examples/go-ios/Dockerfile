@@ -1,4 +1,4 @@
-# go-ios Docker image for use with usbmuxd-docker-extension
+# go-ios Docker image for use with mobile-docker-extension
 FROM golang:1.22-alpine AS builder
 RUN go install github.com/danielpaulus/go-ios@latest
 

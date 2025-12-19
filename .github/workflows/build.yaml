@@ -22,13 +22,13 @@ jobs:
           context: .
           load: true
           push: false
-          tags: aluedeke/usbmuxd-docker-extension:${{ github.sha }}
+          tags: aluedeke/mobile-docker-extension:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Validate metadata
         run: |
-          docker create --name ext aluedeke/usbmuxd-docker-extension:${{ github.sha }}
+          docker create --name ext aluedeke/mobile-docker-extension:${{ github.sha }}
           docker cp ext:/metadata.json metadata.json
           docker rm ext
           cat metadata.json

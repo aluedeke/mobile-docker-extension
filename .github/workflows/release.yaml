@@ -52,8 +52,8 @@ jobs:
           context: .
           push: true
           tags: |
-            aluedeke/usbmuxd-docker-extension:v${{ steps.semantic.outputs.new_release_version }}
-            aluedeke/usbmuxd-docker-extension:latest
+            aluedeke/mobile-docker-extension:v${{ steps.semantic.outputs.new_release_version }}
+            aluedeke/mobile-docker-extension:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -62,6 +62,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: aluedeke/usbmuxd-docker-extension
+          repository: aluedeke/mobile-docker-extension
           readme-filepath: ./README.md
         continue-on-error: true

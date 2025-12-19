@@ -7,7 +7,7 @@
 set -e
 
 RELAY_LABEL="com.docker.mobile-relay"
-EXT_BASE="$HOME/Library/Containers/com.docker.docker/Data/extensions/aluedeke_usbmuxd-docker-extension"
+EXT_BASE="$HOME/Library/Containers/com.docker.docker/Data/extensions/aluedeke_mobile-docker-extension"
 RELAY_DIR="$EXT_BASE/host"
 RELAY_PATH="$RELAY_DIR/mobile-relay"
 RELAY_PLIST="$HOME/Library/LaunchAgents/$RELAY_LABEL.plist"

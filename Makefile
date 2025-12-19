@@ -1,4 +1,4 @@
-IMAGE_NAME ?= aluedeke/usbmuxd-docker-extension
+IMAGE_NAME ?= aluedeke/mobile-docker-extension
 TAG ?= latest
 
 .PHONY: build install uninstall debug clean test-relay

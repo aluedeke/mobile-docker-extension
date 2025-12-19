@@ -1,10 +1,10 @@
 # go-ios Example
 
-This example shows how to use [go-ios](https://github.com/danielpaulus/go-ios) with the usbmuxd-docker-extension.
+This example shows how to use [go-ios](https://github.com/danielpaulus/go-ios) with the mobile-docker-extension.
 
 ## Prerequisites
 
-1. Install the usbmuxd-docker-extension in Docker Desktop
+1. Install the mobile-docker-extension in Docker Desktop
 2. Start the host relay (via the extension UI or manually)
 3. Connect an iOS device via USB
 

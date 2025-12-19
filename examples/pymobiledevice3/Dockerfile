@@ -1,4 +1,4 @@
-# pymobiledevice3 Docker image for use with usbmuxd-docker-extension
+# pymobiledevice3 Docker image for use with mobile-docker-extension
 FROM python:3.12-slim
 
 # Install build dependencies for sslpsk-pmd3

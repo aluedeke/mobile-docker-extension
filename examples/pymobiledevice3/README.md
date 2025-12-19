@@ -1,10 +1,10 @@
 # pymobiledevice3 Example
 
-This example demonstrates using [pymobiledevice3](https://github.com/doronz88/pymobiledevice3) with the usbmuxd-docker-extension to interact with iOS devices from Docker containers.
+This example demonstrates using [pymobiledevice3](https://github.com/doronz88/pymobiledevice3) with the mobile-docker-extension to interact with iOS devices from Docker containers.
 
 ## Prerequisites
 
-1. Install the usbmuxd-docker-extension in Docker Desktop
+1. Install the mobile-docker-extension in Docker Desktop
 2. Start the host relay (via the extension UI or manually)
 3. Connect an iOS device via USB
 

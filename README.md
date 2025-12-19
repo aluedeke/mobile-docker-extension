@@ -1,7 +1,7 @@
 # Mobile Device Relay - Docker Extension
 
 [![Build](https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml/badge.svg)](https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-aluedeke%2Fusbmuxd--docker--extension-blue?logo=docker)](https://hub.docker.com/r/aluedeke/usbmuxd-docker-extension)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-aluedeke%2Fusbmuxd--docker--extension-blue?logo=docker)](https://hub.docker.com/r/aluedeke/mobile-docker-extension)
 
 A Docker Desktop extension that exposes USB-connected iOS devices to Docker containers via the usbmuxd protocol.
 
@@ -57,8 +57,8 @@ This extension creates a bridge between the host's usbmuxd daemon and Docker con
 
 ```bash
 # Clone the repository
-git clone https://github.com/aluedeke/usbmuxd-docker-extension.git
-cd usbmuxd-docker-extension
+git clone https://github.com/aluedeke/mobile-docker-extension.git
+cd mobile-docker-extension
 
 # Build and install
 make install
@@ -67,7 +67,7 @@ make install
 ### From Docker Hub (when published)
 
 ```bash
-docker extension install aluedeke/usbmuxd-docker-extension
+docker extension install aluedeke/mobile-docker-extension
 ```
 
 ## Usage
@@ -86,7 +86,7 @@ The host relay must be running to bridge connections. You can start it from:
 
 ```bash
 # If installed via extension
-~/.docker/extensions/aluedeke_usbmuxd-docker-extension/host/darwin/mobile-relay
+~/.docker/extensions/aluedeke_mobile-docker-extension/host/darwin/mobile-relay
 
 # Or build and run locally
 make run-host
@@ -103,13 +103,13 @@ services:
   ios-automation:
     image: your-image
     volumes:
-      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+      - /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd
 ```
 
 #### Docker run
 
 ```bash
-docker run -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd your-image
+docker run -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd your-image
 ```
 
 ### 3. Use iOS tools normally
@@ -119,12 +119,12 @@ Once configured, iOS tools work as if running on the host:
 ```bash
 # List connected devices with go-ios
 docker run --rm \
-  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   ghcr.io/danielpaulus/go-ios:latest list
 
 # Use pymobiledevice3
 docker run --rm \
-  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   python:3.12-slim sh -c "pip install pymobiledevice3 && pymobiledevice3 usbmux list"
 ```
 
@@ -137,7 +137,7 @@ services:
   go-ios:
     image: ghcr.io/danielpaulus/go-ios:latest
     volumes:
-      - /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd
+      - /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd
     environment:
       - GO_IOS_AGENT_HOST=host.docker.internal
       - GO_IOS_AGENT_PORT=60105
@@ -157,7 +157,7 @@ See the example directories for complete working examples:
 ```bash
 # Using go-ios
 docker run --rm \
-  -v /run/guest-services/aluedeke_usbmuxd-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   ghcr.io/danielpaulus/go-ios:latest list
 
 # Using pymobiledevice3
@@ -172,7 +172,7 @@ docker compose run --rm pymobiledevice3 usbmux list
 
 1. Verify the host relay is running: `pgrep -f mobile-relay`
 2. Check the relay is listening: `lsof -i :27015`
-3. Ensure the socket file exists: `ls -la /run/guest-services/aluedeke_usbmuxd-docker-extension/`
+3. Ensure the socket file exists: `ls -la /run/guest-services/aluedeke_mobile-docker-extension/`
 
 ### "Connection refused" on host relay
 
