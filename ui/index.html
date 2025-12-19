@@ -283,12 +283,12 @@
       <div class="service-status">
         <div class="service-row">
           <div class="service-dot" id="relayDot"></div>
-          <span class="service-name">USBMUX Relay</span>
+          <span class="service-name">USBMUX Relay (for iOS Devices)</span>
           <span class="service-badge stopped" id="relayBadge">Stopped</span>
         </div>
         <div class="service-row">
           <div class="service-dot" id="tunnelDot"></div>
-          <span class="service-name">iOS 17+ Tunnel (integrated)</span>
+          <span class="service-name">iOS 17+ Tunnel (for go-ios)</span>
           <span class="service-badge not-installed" id="tunnelBadge">Unknown</span>
         </div>
       </div>
@@ -312,19 +312,19 @@
     <!-- Usage -->
     <div class="card">
       <h2>Usage</h2>
-      <p class="section-text">Set the USBMUXD_SOCKET_ADDRESS environment variable in your container:</p>
-      <div class="code-block">docker run -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 your-image</div>
+      <p class="section-text">Mount the usbmuxd socket into your container:</p>
+      <div class="code-block">docker run -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd your-image</div>
 
-      <p class="section-text" style="margin-top: 16px;">For iOS 17.4+ tunnel support, also set:</p>
+      <p class="section-text" style="margin-top: 16px;">For go-ios with iOS 17.4+ tunnel support:</p>
       <div class="code-block">docker run \
-  -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   -e GO_IOS_AGENT_HOST=host.docker.internal \
   -e GO_IOS_AGENT_PORT=60105 \
   your-image</div>
 
       <p class="section-text" style="margin-top: 16px;">Test with go-ios:</p>
       <div class="code-block">docker run --rm \
-  -e USBMUXD_SOCKET_ADDRESS=host.docker.internal:27015 \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
   -e GO_IOS_AGENT_HOST=host.docker.internal \
   -e GO_IOS_AGENT_PORT=60105 \
   ghcr.io/danielpaulus/go-ios:latest list</div>
