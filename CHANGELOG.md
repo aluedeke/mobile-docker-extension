@@ -1,3 +1,10 @@
+# [0.1.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.5...v0.1.0) (2025-12-21)
+
+
+### Features
+
+* add Windows autostart support ([29eb59f](https://github.com/aluedeke/mobile-docker-extension/commit/29eb59f1e9b95dfd507edc8a17c12361c6421d0a))
+
 ## [0.0.5](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.4...v0.0.5) (2025-12-19)
 
 
