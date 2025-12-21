@@ -152,6 +152,7 @@ See the example directories for complete working examples:
 
 - [examples/go-ios](examples/go-ios) - Using go-ios with the extension
 - [examples/pymobiledevice3](examples/pymobiledevice3) - Using pymobiledevice3 with the extension
+- [examples/libimobiledevice](examples/libimobiledevice) - Using libimobiledevice with the extension
 
 ### Quick Device Check
 

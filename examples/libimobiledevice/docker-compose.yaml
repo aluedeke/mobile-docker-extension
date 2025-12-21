@@ -1,0 +1,9 @@
+# libimobiledevice with mobile-docker-extension
+# See README.md for usage instructions
+
+services:
+  libimobiledevice:
+    build: .
+    volumes:
+      # Bind mount the usbmuxd socket directly to the expected location
+      - /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd
