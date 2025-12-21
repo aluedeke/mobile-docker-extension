@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Docker Extension - Access iOS devices from Docker containers</title>
+  <meta name="description" content="A Docker Desktop extension that exposes USB-connected iOS devices to Docker containers via the usbmuxd protocol.">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png">
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-card: #161b22;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79b8ff;
+      --success: #3fb950;
+      --border: #30363d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .logo img {
+      width: 32px;
+      height: 32px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .hero-icon {
+      width: 128px;
+      height: 128px;
+      margin-bottom: 32px;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 20px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .badges img {
+      height: 24px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-secondary);
+    }
+
+    /* Features */
+    .features {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 48px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Architecture */
+    .architecture {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .architecture h2 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 48px;
+    }
+
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .arch-diagram pre {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-secondary);
+      text-align: left;
+    }
+
+    /* Installation */
+    .installation {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .installation h2 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 48px;
+    }
+
+    .install-steps {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .install-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .install-step h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-number {
+      background: var(--accent);
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .code-block {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+
+    /* Tools */
+    .tools {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .tools h2 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .tools > p {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+    }
+
+    .tool-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .tool-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .tool-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .tool-card a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .tool-card a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <nav>
+        <a href="/" class="logo">
+          <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" alt="Logo">
+          Mobile Docker Extension
+        </a>
+        <div class="nav-links">
+          <a href="https://github.com/aluedeke/mobile-docker-extension#readme">Documentation</a>
+          <a href="https://github.com/aluedeke/mobile-docker-extension/tree/main/examples">Examples</a>
+          <a href="https://github.com/aluedeke/mobile-docker-extension">GitHub</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" alt="Mobile Docker Extension" class="hero-icon">
+        <h1>Mobile Docker Extension</h1>
+        <p>Access USB-connected iOS devices from Docker containers. Run go-ios, pymobiledevice3, libimobiledevice and more - all from within containers.</p>
+        <div class="badges">
+          <a href="https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml">
+            <img src="https://github.com/aluedeke/mobile-docker-extension/actions/workflows/build.yaml/badge.svg" alt="Build Status">
+          </a>
+          <a href="https://hub.docker.com/r/aluedeke/mobile-docker-extension">
+            <img src="https://img.shields.io/badge/Docker%20Hub-aluedeke%2Fmobile--docker--extension-blue?logo=docker" alt="Docker Hub">
+          </a>
+        </div>
+        <div class="cta-buttons">
+          <a href="https://hub.docker.com/r/aluedeke/mobile-docker-extension" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.186m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.185-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.185.185v1.888c0 .102.084.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></svg>
+            Install Extension
+          </a>
+          <a href="https://github.com/aluedeke/mobile-docker-extension" class="btn btn-secondary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2>Features</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>🍎 iOS Device Access</h3>
+            <p>Bridge USB-connected iOS devices to Docker containers via the usbmuxd protocol. Works with iPhones, iPads, and Apple TVs.</p>
+          </div>
+          <div class="feature-card">
+            <h3>🚀 iOS 17.4+ Tunnels</h3>
+            <p>Built-in tunnel manager for iOS 17.4+ devices. Supports go-ios tunnel features and pymobiledevice3 transparent tunneling.</p>
+          </div>
+          <div class="feature-card">
+            <h3>💻 Cross-Platform</h3>
+            <p>Works on macOS and Windows. Auto-start support via launchctl (macOS) or Task Scheduler (Windows).</p>
+          </div>
+          <div class="feature-card">
+            <h3>🔌 Simple Integration</h3>
+            <p>Just mount a socket into your container. No complex networking or environment variables required.</p>
+          </div>
+          <div class="feature-card">
+            <h3>📦 Docker Desktop UI</h3>
+            <p>Easy-to-use extension UI to start/stop the relay, view logs, and configure auto-start.</p>
+          </div>
+          <div class="feature-card">
+            <h3>🛠️ Multiple Tools</h3>
+            <p>Compatible with go-ios, pymobiledevice3, libimobiledevice, and any tool that uses the usbmuxd protocol.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="installation">
+      <div class="container">
+        <h2>Quick Start</h2>
+        <div class="install-steps">
+          <div class="install-step">
+            <h3><span class="step-number">1</span> Install the Extension</h3>
+            <div class="code-block">docker extension install aluedeke/mobile-docker-extension</div>
+          </div>
+          <div class="install-step">
+            <h3><span class="step-number">2</span> Start the Host Relay</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 12px;">Open Docker Desktop → Mobile Docker Extension → Click "Start"</p>
+          </div>
+          <div class="install-step">
+            <h3><span class="step-number">3</span> Use in Your Container</h3>
+            <div class="code-block">docker run -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd your-image</div>
+          </div>
+          <div class="install-step">
+            <h3><span class="step-number">4</span> Test with go-ios</h3>
+            <div class="code-block">docker run --rm \
+  -v /run/guest-services/aluedeke_mobile-docker-extension/usbmuxd.sock:/var/run/usbmuxd \
+  ghcr.io/danielpaulus/go-ios:latest list</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tools">
+      <div class="container">
+        <h2>Compatible Tools</h2>
+        <p>Works with any iOS automation tool that uses the usbmuxd protocol</p>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <h3>go-ios</h3>
+            <p>iOS automation toolkit written in Go. Device management, app installation, and more.</p>
+            <a href="https://github.com/aluedeke/mobile-docker-extension/tree/main/examples/go-ios">View Example →</a>
+          </div>
+          <div class="tool-card">
+            <h3>pymobiledevice3</h3>
+            <p>Pure Python implementation with transparent iOS 17+ tunnel support.</p>
+            <a href="https://github.com/aluedeke/mobile-docker-extension/tree/main/examples/pymobiledevice3">View Example →</a>
+          </div>
+          <div class="tool-card">
+            <h3>libimobiledevice</h3>
+            <p>Cross-platform C library and CLI tools for iOS device communication.</p>
+            <a href="https://github.com/aluedeke/mobile-docker-extension/tree/main/examples/libimobiledevice">View Example →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="architecture">
+      <div class="container">
+        <h2>How It Works</h2>
+        <div class="arch-diagram">
+          <pre>
+┌───────────────────────────────────────────────────────────┐
+│ macOS/Windows Host                                        │
+│                                                           │
+│  iPhone ───USB───► /var/run/usbmuxd                       │
+│                          │                                │
+│                mobile-relay (TCP :27015)                  │
+│                + tunnel manager (:60105)                  │
+│                          │                                │
+└──────────────────────────┼────────────────────────────────┘
+                           │ host.docker.internal:27015
+┌──────────────────────────┼────────────────────────────────┐
+│ Docker Desktop VM        ▼                                │
+│                ┌─────────────────┐                        │
+│                │ usbmuxd-backend │                        │
+│                └────────┬────────┘                        │
+│                         │                                 │
+│                         ▼                                 │
+│       /run/guest-services/.../usbmuxd.sock                │
+│                         │                                 │
+│  ┌──────────────────────┼──────────────────────────────┐  │
+│  │ Your Container       │                              │  │
+│  │                      ▼                              │  │
+│  │            /var/run/usbmuxd (volume mount)          │  │
+│  │                                                     │  │
+│  │     go-ios, pymobiledevice3, libimobiledevice       │  │
+│  └─────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────┘</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>
+        Made with ❤️ by <a href="https://github.com/aluedeke">aluedeke</a> ·
+        <a href="https://github.com/aluedeke/mobile-docker-extension">GitHub</a> ·
+        <a href="https://hub.docker.com/r/aluedeke/mobile-docker-extension">Docker Hub</a> ·
+        MIT License
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
