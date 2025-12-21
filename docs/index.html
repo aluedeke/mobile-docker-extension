@@ -195,6 +195,50 @@
       font-size: 14px;
     }
 
+    /* Use Cases */
+    .usecases {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .usecases h2 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 48px;
+    }
+
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .usecase-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .usecase-card h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .usecase-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .usecase-card .code-block {
+      font-size: 12px;
+      padding: 12px;
+    }
+
     /* Architecture */
     .architecture {
       padding: 80px 0;
@@ -439,6 +483,69 @@
           <div class="feature-card">
             <h3>🛠️ Multiple Tools</h3>
             <p>Compatible with go-ios, pymobiledevice3, libimobiledevice, and any tool that uses the usbmuxd protocol.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="usecases">
+      <div class="container">
+        <h2>What Can You Do?</h2>
+        <div class="usecase-grid">
+          <div class="usecase-card">
+            <h3>📱 Device Management</h3>
+            <p>List connected devices, get device info, rename devices, and manage device pairing - all from your container.</p>
+            <div class="code-block">docker compose run --rm ios idevice_id -l
+docker compose run --rm ios ideviceinfo</div>
+          </div>
+          <div class="usecase-card">
+            <h3>📦 App Installation</h3>
+            <p>Install, uninstall, and manage apps on iOS devices. Perfect for CI/CD pipelines and automated testing.</p>
+            <div class="code-block">docker compose run --rm ios ideviceinstaller -i app.ipa
+docker compose run --rm ios ideviceinstaller -l</div>
+          </div>
+          <div class="usecase-card">
+            <h3>📂 File Transfer</h3>
+            <p>Push and pull files to/from iOS devices. Access app documents, crash logs, and more.</p>
+            <div class="code-block">docker compose run --rm ios idevicecrashreport ./crashes
+docker compose run --rm ios ifuse --documents com.example.app /mnt</div>
+          </div>
+          <div class="usecase-card">
+            <h3>📸 Screenshots</h3>
+            <p>Capture screenshots for visual testing, documentation, or debugging purposes.</p>
+            <div class="code-block">docker compose run --rm ios idevicescreenshot screenshot.png
+docker compose run --rm go-ios screenshot output.png</div>
+          </div>
+          <div class="usecase-card">
+            <h3>📋 System Logs</h3>
+            <p>Stream device system logs in real-time for debugging and monitoring applications.</p>
+            <div class="code-block">docker compose run --rm ios idevicesyslog
+docker compose run --rm ios idevicesyslog -p MyApp</div>
+          </div>
+          <div class="usecase-card">
+            <h3>💾 Backup & Restore</h3>
+            <p>Create full device backups and restore them. Useful for test environment setup.</p>
+            <div class="code-block">docker compose run --rm ios idevicebackup2 backup ./backups
+docker compose run --rm ios idevicebackup2 restore ./backups</div>
+          </div>
+          <div class="usecase-card">
+            <h3>🔧 Diagnostics</h3>
+            <p>Restart, shutdown, or sleep devices remotely. Get battery status and other diagnostics.</p>
+            <div class="code-block">docker compose run --rm ios idevicediagnostics restart
+docker compose run --rm ios idevicediagnostics diagnostics All</div>
+          </div>
+          <div class="usecase-card">
+            <h3>🤖 CI/CD Automation</h3>
+            <p>Integrate iOS device testing into your CI/CD pipeline with containerized tooling.</p>
+            <div class="code-block">docker run --rm \
+  -v usbmuxd.sock:/var/run/usbmuxd \
+  my-test-image ./run-ios-tests.sh</div>
+          </div>
+          <div class="usecase-card">
+            <h3>🔐 Device Pairing</h3>
+            <p>Manage device trust relationships. Pair, validate, and unpair devices programmatically.</p>
+            <div class="code-block">docker compose run --rm ios idevicepair pair
+docker compose run --rm ios idevicepair validate</div>
           </div>
         </div>
       </div>
