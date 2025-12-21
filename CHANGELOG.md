@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.3.0...v0.4.0) (2025-12-21)
+
+
+### Features
+
+* **docs:** add use cases section to website ([9f8c3fd](https://github.com/aluedeke/mobile-docker-extension/commit/9f8c3fdabd4af223262cf6ded4ebae0ca69818cb))
+
 # [0.3.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.2.0...v0.3.0) (2025-12-21)
 
 
