@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.1.0...v0.2.0) (2025-12-21)
+
+
+### Features
+
+* add libimobiledevice example ([0e8311c](https://github.com/aluedeke/mobile-docker-extension/commit/0e8311c6e40e5d334bc711b76760aac9fcc9b616))
+
 # [0.1.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.0.5...v0.1.0) (2025-12-21)
 
 
