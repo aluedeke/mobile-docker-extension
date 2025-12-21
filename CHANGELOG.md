@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.2.0...v0.3.0) (2025-12-21)
+
+
+### Features
+
+* add GitHub Pages website ([634991b](https://github.com/aluedeke/mobile-docker-extension/commit/634991bbb9eb33f84bbe3420694aee822f86ddbe))
+
 # [0.2.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.1.0...v0.2.0) (2025-12-21)
 
 
