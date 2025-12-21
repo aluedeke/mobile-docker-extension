@@ -5,7 +5,7 @@
 
 A Docker Desktop extension that exposes USB-connected iOS devices to Docker containers via the usbmuxd protocol.
 
-> **Note:** This extension is currently only tested on macOS. Windows is untested and using on Linux doesn't make any sense.
+> **Note:** This extension works on macOS and Windows. Linux is not supported (Docker runs natively on Linux, so you can access usbmuxd directly).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" alt="Mobile Device Relay" width="256">
@@ -48,8 +48,9 @@ This extension creates a bridge between the host's usbmuxd daemon and Docker con
 ## Requirements
 
 - Docker Desktop 4.8.0 or later
-- macOS with Xcode/usbmuxd or Linux with usbmuxd installed
 - iOS device connected via USB
+- **macOS**: Xcode or usbmuxd installed (comes with Xcode Command Line Tools)
+- **Windows**: [Apple Devices](https://apps.microsoft.com/detail/9np83lwlpz9k) app from Microsoft Store (provides usbmuxd/iTunes drivers)
 
 ## Installation
 

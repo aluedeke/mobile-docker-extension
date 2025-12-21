@@ -355,6 +355,27 @@
       return window.ddClient || createMockClient();
     }
 
+    // Get the helper script command based on platform
+    function getHelperCommand() {
+      const platform = getClient().host?.platform;
+      if (platform === 'win32') {
+        return { cmd: 'powershell.exe', scriptArg: '-ExecutionPolicy', scriptArg2: 'Bypass', scriptArg3: '-File', script: 'startup-helper.ps1' };
+      }
+      return { cmd: 'launchctl-helper.sh', script: null };
+    }
+
+    // Execute helper script with given command
+    async function execHelper(command) {
+      const helper = getHelperCommand();
+      if (helper.script) {
+        // Windows: powershell.exe -ExecutionPolicy Bypass -File startup-helper.ps1 <command>
+        return await getClient().extension.host.cli.exec(helper.cmd, [helper.scriptArg, helper.scriptArg2, helper.scriptArg3, helper.script, command]);
+      } else {
+        // macOS: launchctl-helper.sh <command>
+        return await getClient().extension.host.cli.exec(helper.cmd, [command]);
+      }
+    }
+
     async function init() {
       // Check initial states
       await Promise.all([
@@ -415,12 +436,12 @@
 
       // Fallback: Check if relay process is actually running
       try {
-        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['running']);
+        const result = await execHelper('running');
         const output = (result?.stdout || '').trim();
-        console.log('launchctl-helper running:', output);
+        console.log('helper running:', output);
         relayRunning = output === 'running';
       } catch (err) {
-        console.log('launchctl-helper check failed:', err);
+        console.log('helper check failed:', err);
         relayRunning = false;
       }
       updateStatusUI();
@@ -437,14 +458,8 @@
       const badge = document.getElementById('autoStartBadge');
       const btn = document.getElementById('autoStartBtn');
 
-      if (getClient().host?.platform === 'win32') {
-        badge.textContent = 'Not Supported';
-        btn.disabled = true;
-        return;
-      }
-
       try {
-        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['status']);
+        const result = await execHelper('status');
         console.log('autostart check result:', result);
         autoStartInstalled = (result?.stdout || '').trim() === 'installed';
       } catch (err) {
@@ -469,7 +484,7 @@
       const container = document.getElementById('logContainer');
 
       try {
-        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['logs']);
+        const result = await execHelper('logs');
         const logContent = (result?.stdout || '').trim();
 
         if (logContent) {
@@ -488,7 +503,7 @@
 
     async function clearLogs() {
       try {
-        await getClient().extension.host.cli.exec('launchctl-helper.sh', ['clear-logs']);
+        await execHelper('clear-logs');
         await loadLogs();
       } catch (err) {
         console.log('Failed to clear logs:', err);
@@ -580,7 +595,7 @@
 
       try {
         // Start relay and tunnel via helper script
-        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['start']);
+        const result = await execHelper('start');
         const output = (result?.stdout || '').trim();
         console.log('start result:', output);
 
@@ -612,7 +627,7 @@
       btn.textContent = 'Stopping...';
 
       try {
-        const result = await getClient().extension.host.cli.exec('launchctl-helper.sh', ['stop']);
+        const result = await execHelper('stop');
         console.log('stop result:', (result?.stdout || '').trim());
       } catch (err) {
         console.log('stop error (may be expected):', err);
@@ -634,8 +649,8 @@
         const command = autoStartInstalled ? 'uninstall' : 'install';
         btn.textContent = autoStartInstalled ? 'Uninstalling...' : 'Installing...';
 
-        console.log('Running launchctl-helper.sh', command);
-        await getClient().extension.host.cli.exec('launchctl-helper.sh', [command]);
+        console.log('Running helper:', command);
+        await execHelper(command);
 
         await checkAutoStartStatus();
       } catch (err) {

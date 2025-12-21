@@ -24,7 +24,8 @@
           { "path": "/scripts/launchctl-helper.sh" }
         ],
         "windows": [
-          { "path": "/host/windows/mobile-relay.exe" }
+          { "path": "/host/windows/mobile-relay.exe" },
+          { "path": "/scripts/startup-helper.ps1" }
         ]
       }
     ]
