@@ -1,3 +1,10 @@
+## [0.4.2](https://github.com/aluedeke/mobile-docker-extension/compare/0.4.1...0.4.2) (2025-12-23)
+
+
+### Bug Fixes
+
+* update Docker extension labels for marketplace validation ([3bcb64d](https://github.com/aluedeke/mobile-docker-extension/commit/3bcb64de915eb94ad35710b44433dfafdefa1808))
+
 ## [0.4.1](https://github.com/aluedeke/mobile-docker-extension/compare/v0.4.0...0.4.1) (2025-12-23)
 
 
