@@ -53,7 +53,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            aluedeke/mobile-docker-extension:v${{ steps.semantic.outputs.new_release_version }}
+            aluedeke/mobile-docker-extension:${{ steps.semantic.outputs.new_release_version }}
             aluedeke/mobile-docker-extension:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
