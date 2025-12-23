@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/aluedeke/mobile-docker-extension/compare/v0.4.0...0.4.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* use semantic versions without v prefix ([49b7c24](https://github.com/aluedeke/mobile-docker-extension/commit/49b7c246da3b43fba3b48f84cc9015723ceef3b4))
+
 # [0.4.0](https://github.com/aluedeke/mobile-docker-extension/compare/v0.3.0...v0.4.0) (2025-12-21)
 
 
