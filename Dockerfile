@@ -41,17 +41,18 @@ RUN GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o /host/w
 FROM alpine:3.19
 
 # Docker Desktop Extension labels (required)
-LABEL org.opencontainers.image.title="Mobile Docker Extension" \
+LABEL org.opencontainers.image.title="Mobile Device Relay" \
       org.opencontainers.image.description="Access USB-connected iOS devices from Docker containers (macOS and Windows)" \
       org.opencontainers.image.vendor="aluedeke" \
       org.opencontainers.image.source="https://github.com/aluedeke/mobile-docker-extension" \
       org.opencontainers.image.licenses="MIT" \
       com.docker.desktop.extension.api.version="0.3.4" \
-      com.docker.desktop.extension.icon="icon.png" \
+      com.docker.desktop.extension.icon="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" \
       com.docker.extension.categories="utility" \
       com.docker.extension.detailed-description="Bridges the usbmuxd socket to Docker containers, enabling tools like go-ios, pymobiledevice3, and libimobiledevice to communicate with USB-connected iOS devices. Includes iOS 17.4+ tunnel support. Works on macOS and Windows." \
       com.docker.extension.publisher-url="https://github.com/aluedeke" \
       com.docker.extension.additional-urls="[{\"title\":\"Documentation\",\"url\":\"https://github.com/aluedeke/mobile-docker-extension#readme\"},{\"title\":\"Issues\",\"url\":\"https://github.com/aluedeke/mobile-docker-extension/issues\"}]" \
+      com.docker.extension.screenshots="[{\"alt\":\"Main UI showing relay and tunnel status\",\"url\":\"https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/docs/screenshot.png\"}]" \
       com.docker.extension.changelog="Initial release with iOS 17.4+ tunnel support"
 
 # Install ca-certificates for TLS
