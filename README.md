@@ -8,7 +8,7 @@ A Docker Desktop extension that exposes USB-connected iOS devices to Docker cont
 > **Note:** This extension works on macOS and Windows. Linux is not supported (Docker runs natively on Linux, so you can access usbmuxd directly).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" alt="Mobile Device Relay" width="256">
+  <img src="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.svg" alt="Mobile Device Relay" width="256">
 </p>
 
 ## What it does

@@ -47,7 +47,7 @@ LABEL org.opencontainers.image.title="Mobile Device Relay" \
       org.opencontainers.image.source="https://github.com/aluedeke/mobile-docker-extension" \
       org.opencontainers.image.licenses="MIT" \
       com.docker.desktop.extension.api.version="0.3.4" \
-      com.docker.desktop.extension.icon="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.png" \
+      com.docker.desktop.extension.icon="https://raw.githubusercontent.com/aluedeke/mobile-docker-extension/main/icon.svg" \
       com.docker.extension.categories="utility" \
       com.docker.extension.detailed-description="Bridges the usbmuxd socket to Docker containers, enabling tools like go-ios, pymobiledevice3, and libimobiledevice to communicate with USB-connected iOS devices. Includes iOS 17.4+ tunnel support. Works on macOS and Windows." \
       com.docker.extension.publisher-url="https://github.com/aluedeke" \
@@ -73,7 +73,7 @@ COPY scripts /scripts
 
 # Copy metadata
 COPY metadata.json /metadata.json
-COPY icon.png /icon.png
+COPY icon.svg /icon.svg
 COPY docker-compose.yaml /docker-compose.yaml
 
 CMD ["/backend"]
