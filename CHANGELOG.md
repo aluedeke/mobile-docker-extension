@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/aluedeke/mobile-docker-extension/compare/0.4.2...0.5.0) (2026-01-05)
+
+
+### Features
+
+* replace PNG icon with SVG ([f293e0d](https://github.com/aluedeke/mobile-docker-extension/commit/f293e0dd84c20dfd5cc61f457825e083557fe6bc))
+
 ## [0.4.2](https://github.com/aluedeke/mobile-docker-extension/compare/0.4.1...0.4.2) (2025-12-23)
 
 
